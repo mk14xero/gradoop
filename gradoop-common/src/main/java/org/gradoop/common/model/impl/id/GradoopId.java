@@ -126,8 +126,11 @@ public class GradoopId implements NormalizableKey<GradoopId>, CopyableValue<Grad
     for (int i = 0; i < b.length; i++) {
       b[i] = (byte) Integer.parseInt(string.substring(i * 2, i * 2 + 2), 16);
     }
+
     return new GradoopId(b);
+
   }
+
 
   /**
    * Returns the Gradoop ID represented by a byte array

@@ -67,7 +67,7 @@ public class AsciiGraphLoaderTest {
   @Test
   public void testGetGraphHeadByVariable() throws Exception {
     AsciiGraphLoader<GraphHead, Vertex, Edge> asciiGraphLoader =
-      AsciiGraphLoader.fromString("g[()];h[()]", config);
+      AsciiGraphLoader.fromString("g[()]h[()]", config);
 
     validateCollections(asciiGraphLoader, 2, 2, 0);
     validateCaches(asciiGraphLoader, 2, 0, 0);

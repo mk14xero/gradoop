@@ -100,13 +100,24 @@ public class VertexFactory implements EPGMVertexFactory<Vertex>, Serializable {
     return initVertex(vertexID, label, null, graphs);
   }
 
+  @Override
+  public Vertex createVertex(String label, Properties properties,GradoopIdSet graphIds ) {
+        return initVertex(GradoopId.get(), label, properties);
+  }
+ @Override
+  public Vertex initVertex(final GradoopId vertexID, final String label, final Properties properties,
+                             final GradoopIdSet graphs) {
+        return initVertex(vertexID, label, null, graphs);
+  }
+
+
   /**
    * {@inheritDoc}
    */
   @Override
   public Vertex createVertex(String label, Properties properties,
-    GradoopIdSet graphIds) {
-    return initVertex(GradoopId.get(), label, properties, graphIds);
+    GradoopIdSet graphIds, Long from, Long to) {
+    return initVertex(GradoopId.get(), label, properties, graphIds, from, to);
   }
 
   /**
@@ -114,11 +125,12 @@ public class VertexFactory implements EPGMVertexFactory<Vertex>, Serializable {
    */
   @Override
   public Vertex initVertex(final GradoopId id, final String label,
-    final Properties properties, final GradoopIdSet graphs) {
+    final Properties properties, final GradoopIdSet graphs, final Long from, final Long to) {
     Preconditions.checkNotNull(id, "Identifier was null");
     Preconditions.checkNotNull(label, "Label was null");
-    return new Vertex(id, label, properties, graphs);
+    return new Vertex(id, label, properties, graphs, from, to);
   }
+
 
   @Override
   public Class<Vertex> getType() {

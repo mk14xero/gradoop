@@ -47,8 +47,8 @@ public abstract class GraphElement
    * @param graphIds     graphIds that element is contained in
    */
   protected GraphElement(GradoopId id, String label,
-    Properties properties, GradoopIdSet graphIds) {
-    super(id, label, properties);
+    Properties properties, Long from, Long to, GradoopIdSet graphIds) {
+    super(id, label, properties, from, to);
     this.graphIds = graphIds;
   }
 
@@ -104,4 +104,4 @@ public abstract class GraphElement
   public String toString() {
     return String.format("%s @ %s", super.toString(), graphIds);
   }
-}
+  }

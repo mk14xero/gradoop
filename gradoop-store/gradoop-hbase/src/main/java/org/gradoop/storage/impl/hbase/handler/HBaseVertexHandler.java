@@ -78,6 +78,7 @@ public class HBaseVertexHandler extends HBaseGraphElementHandler implements Vert
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_META));
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_PROPERTY_TYPE));
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_PROPERTY_VALUE));
+    tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_TS));
     admin.createTable(tableDescriptor);
   }
 
@@ -89,6 +90,8 @@ public class HBaseVertexHandler extends HBaseGraphElementHandler implements Vert
     writeLabel(put, vertexData);
     writeProperties(put, vertexData);
     writeGraphIds(put, vertexData);
+    writeFrom(put, vertexData);
+    writeTo(put, vertexData);
     return put;
   }
 
@@ -98,7 +101,7 @@ public class HBaseVertexHandler extends HBaseGraphElementHandler implements Vert
   @Override
   public Vertex readVertex(final Result res) {
     return vertexFactory.initVertex(readId(res), readLabel(res), readProperties(res),
-      readGraphIds(res));
+      readGraphIds(res), readFrom(res), readTo(res));
   }
 
   /**

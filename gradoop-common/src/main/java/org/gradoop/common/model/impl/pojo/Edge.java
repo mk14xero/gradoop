@@ -52,9 +52,9 @@ public class Edge extends GraphElement implements EPGMEdge {
    * @param graphIds    graphs that edge is contained in
    */
   public Edge(final GradoopId id, final String label, final GradoopId sourceId,
-    final GradoopId targetId, final Properties properties,
+    final GradoopId targetId, final Properties properties, final Long from, final Long to,
     GradoopIdSet graphIds) {
-    super(id, label, properties, graphIds);
+    super(id, label, properties, from, to, graphIds);
     this.sourceId = sourceId;
     this.targetId = targetId;
   }
@@ -101,4 +101,6 @@ public class Edge extends GraphElement implements EPGMEdge {
     return String.format("(%s)-[%s]->(%s)",
       sourceId, super.toString(), targetId);
   }
+
+
 }

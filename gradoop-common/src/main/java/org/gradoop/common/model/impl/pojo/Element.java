@@ -43,6 +43,10 @@ public abstract class Element implements EPGMElement {
    */
   protected Properties properties;
 
+  protected Long from;
+
+  protected Long to;
+
   /**
    * Default constructor.
    */
@@ -58,10 +62,12 @@ public abstract class Element implements EPGMElement {
    * @param properties key-value properties
    */
   protected Element(
-    GradoopId id, String label, Properties properties) {
+    GradoopId id, String label, Properties properties, Long from, Long to) {
     this.id = id;
     this.label = label;
     this.properties = properties;
+    this.from = from;
+    this.to = to;
   }
 
   /**
@@ -129,6 +135,24 @@ public abstract class Element implements EPGMElement {
   public void setProperties(Properties properties) {
     this.properties = properties;
   }
+
+  @Override
+  public Long getTo() {
+    return to;
+  }
+
+  @Override
+  public void setTo(Long to) {
+    this.to = to;
+  }
+
+  @Override
+  public void setFrom(Long from) {
+    this.from = from;
+  }
+
+  @Override
+  public Long getFrom() {return from; }
 
   /**
    * {@inheritDoc}

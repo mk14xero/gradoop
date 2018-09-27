@@ -48,7 +48,7 @@ public interface EPGMGraphOutput {
    * @throws IOException if error occur on IO error (timeout, conn disconnected)
    */
   @Nullable
-  GraphHead readGraph(@Nonnull GradoopId graphId) throws IOException;
+  GraphHead readGraph(@Nonnull GradoopId graphId, long from) throws IOException;
 
   /**
    * Reads all graphs from the EPGMGraphOutput.
@@ -81,7 +81,7 @@ public interface EPGMGraphOutput {
    * @throws IOException if error occur on IO error (timeout, conn disconnected)
    */
   @Nullable
-  Vertex readVertex(@Nonnull GradoopId vertexId) throws IOException;
+  Vertex readVertex(@Nonnull GradoopId vertexId, long from) throws IOException;
 
   /**
    * Reads all vertices from the EPGMGraphOutput.
@@ -114,7 +114,7 @@ public interface EPGMGraphOutput {
    * @throws IOException if error occur on IO error (timeout, conn disconnected)
    */
   @Nullable
-  Edge readEdge(@Nonnull GradoopId edgeId) throws IOException;
+  Edge readEdge(@Nonnull GradoopId edgeId, long from) throws IOException;
 
   /**
    * Reads all edges from the EPGMGraphOutput.

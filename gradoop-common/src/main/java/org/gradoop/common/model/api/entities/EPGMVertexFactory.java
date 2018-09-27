@@ -117,5 +117,33 @@ public interface EPGMVertexFactory<V extends EPGMVertex>
    * @return vertex data
    */
   V initVertex(GradoopId id, String label, Properties properties,
-    GradoopIdSet graphIds);
+               GradoopIdSet graphIds);
+
+    /**
+     * Initializes a vertex based on the given parameters.
+     *
+     * @param label      vertex labels
+     * @param properties vertex properties
+     * @param graphIds   graphIds, that contain the vertex
+     * @param from       vertex timestamp from
+     * @param to         vertex timestamp to
+     * @return vertex data
+     */
+
+    V createVertex(String label, Properties properties, GradoopIdSet graphIds, Long from, Long to);
+
+    /**
+     * Initializes a vertex based on the given parameters.
+     *
+     * @param id         vertex identifier
+     * @param label      vertex labels
+     * @param properties vertex properties
+     * @param graphIds   graphIds, that contain the vertex
+     * @param from       vertex timestamp from
+     * @param to         vertex timestamp to
+     * @return vertex data
+     */
+
+  V initVertex(GradoopId id, String label, Properties properties, GradoopIdSet graphIds, Long from, Long to);
+
 }

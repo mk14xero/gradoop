@@ -78,6 +78,7 @@ public class HBaseGraphHeadHandler extends HBaseElementHandler implements GraphH
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_META));
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_PROPERTY_TYPE));
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_PROPERTY_VALUE));
+    tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_TS));
     admin.createTable(tableDescriptor);
   }
 
@@ -88,6 +89,8 @@ public class HBaseGraphHeadHandler extends HBaseElementHandler implements GraphH
   public Put writeGraphHead(final Put put, final EPGMGraphHead graphData) {
     writeLabel(put, graphData);
     writeProperties(put, graphData);
+    writeFrom(put, graphData);
+    writeTo(put, graphData);
     return put;
   }
 
@@ -96,7 +99,7 @@ public class HBaseGraphHeadHandler extends HBaseElementHandler implements GraphH
    */
   @Override
   public GraphHead readGraphHead(final Result res) {
-    return graphHeadFactory.initGraphHead(readId(res), readLabel(res), readProperties(res));
+    return graphHeadFactory.initGraphHead(readId(res), readLabel(res), readProperties(res), readFrom(res), readTo(res));
   }
 
   /**

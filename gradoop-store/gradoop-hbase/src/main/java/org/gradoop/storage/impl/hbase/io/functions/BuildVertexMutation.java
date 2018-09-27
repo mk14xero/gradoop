@@ -65,10 +65,11 @@ public class BuildVertexMutation extends RichMapFunction<Vertex, Tuple2<GradoopI
   /**
    * {@inheritDoc}
    */
-  @Override
+
   public Tuple2<GradoopId, Mutation> map(Vertex vertex) throws Exception {
     GradoopId key = vertex.getId();
-    Put put = new Put(vertexHandler.getRowKey(vertex.getId()));
+
+    Put put = new Put(vertexHandler.getRowKey(vertex.getId(), vertex.getFrom()));
     put = vertexHandler.writeVertex(put, vertex);
 
     reuseTuple.f0 = key;

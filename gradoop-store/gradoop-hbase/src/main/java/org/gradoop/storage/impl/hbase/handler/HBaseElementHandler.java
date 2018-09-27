@@ -26,7 +26,7 @@ import org.gradoop.common.model.impl.properties.PropertyValueUtils;
 import org.gradoop.storage.impl.hbase.api.ElementHandler;
 import org.gradoop.storage.impl.hbase.constants.HBaseConstants;
 
-import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Map;
 
 /**
@@ -56,23 +56,37 @@ public abstract class HBaseElementHandler implements ElementHandler {
   private static final byte[] CF_PROPERTY_VALUE_BYTES =
     Bytes.toBytes(HBaseConstants.CF_PROPERTY_VALUE);
 
+  private static final byte[] CF_TIMESTAMP_BYTES =
+            Bytes.toBytes(HBaseConstants.CF_TS);
+
+  private static final byte[] COL_TS_FROM_BYTES = Bytes.toBytes(HBaseConstants.COL_TS_FROM);
+
+  private static final byte[] COL_TS_TO_BYTES = Bytes.toBytes(HBaseConstants.COL_TS_TO);
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public byte[] getRowKey(final GradoopId elementId) throws IOException {
-    return elementId.toByteArray();
+  public byte[] getRowKey(final GradoopId elementId, long from){
+    byte[] gradoopId = elementId.toByteArray(); // 12 Byte
+    byte[] underscore = "_".getBytes(); // 1 Byte ??
+    byte[] fromBytes = ByteBuffer.allocate(Long.BYTES).putLong(from).array(); // 16 Byte
+
+    return ByteBuffer.allocate(fromBytes.length + underscore.length + gradoopId.length).put(fromBytes).put(underscore).put(gradoopId).array();
   }
 
   /**
    * {@inheritDoc}
    */
   @Override
-  public GradoopId getId(final byte[] rowKey) throws IOException {
+  public GradoopId getId(final byte[] rowKey) {
     if (rowKey == null) {
       throw new IllegalArgumentException("rowKey must not be null");
     }
-    return GradoopId.fromByteArray(rowKey);
+        byte[] gradoopId = new byte[12];
+        System.arraycopy(rowKey,17, gradoopId, 0, 12);
+
+        return GradoopId.fromByteArray(gradoopId);
   }
 
   /**
@@ -109,12 +123,36 @@ public abstract class HBaseElementHandler implements ElementHandler {
     return put;
   }
 
+
+  @Override
+  public Put writeFrom(final Put put, final EPGMElement entity) {
+      return (entity.getFrom() == null) ? put :
+      put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES, Bytes.toBytes(entity.getFrom()));
+  }
+
+    @Override
+    public Put writeTo(final Put put, final EPGMElement entity) {
+        return (entity.getTo() == null) ? put :
+                put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES, Bytes.toBytes(entity.getTo()));
+    }
+
   /**
    * {@inheritDoc}
    */
   @Override
   public String readLabel(final Result res) {
     return Bytes.toString(res.getValue(CF_META_BYTES, COL_LABEL_BYTES));
+  }
+
+
+  @Override
+  public Long readFrom(final Result res) {
+    return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES));
+  }
+
+  @Override
+  public Long readTo(final Result res) {
+    return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES));
   }
 
   /**

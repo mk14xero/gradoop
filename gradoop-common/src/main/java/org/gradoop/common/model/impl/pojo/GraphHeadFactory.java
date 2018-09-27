@@ -69,6 +69,8 @@ public class GraphHeadFactory implements EPGMGraphHeadFactory<GraphHead>,
   /**
    * {@inheritDoc}
    */
+
+
   @Override
   public GraphHead createGraphHead(String label, Properties properties) {
     return initGraphHead(GradoopId.get(), label, properties);
@@ -79,13 +81,23 @@ public class GraphHeadFactory implements EPGMGraphHeadFactory<GraphHead>,
    */
   @Override
   public GraphHead initGraphHead(final GradoopId id, final String label,
-    Properties properties) {
+    Properties properties, Long from, Long to) {
     Preconditions.checkNotNull(id, "Identifier was null");
     Preconditions.checkNotNull(label, "Label was null");
-    return new GraphHead(id, label, properties);
+    return new GraphHead(id, label, properties, from, to);
   }
 
   @Override
+    public GraphHead createGraphHead(String label, Properties properties, Long from, Long to) {
+        return null;
+    }
+
+  @Override
+    public GraphHead initGraphHead(GradoopId id, String label, Properties properties) {
+        return null;
+    }
+
+    @Override
   public Class<GraphHead> getType() {
     return GraphHead.class;
   }

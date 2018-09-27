@@ -67,10 +67,10 @@ public class BuildGraphHeadMutation extends
   /**
    * {@inheritDoc}
    */
-  @Override
+
   public Tuple2<GradoopId, Mutation> map(GraphHead graphHead) throws Exception {
     GradoopId key = graphHead.getId();
-    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
+    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId(), graphHead.getFrom()));
     put = graphHeadHandler.writeGraphHead(put, graphHead);
 
     reuseTuple.f0 = key;

@@ -145,4 +145,10 @@ public interface EPGMEdgeFactory<E extends EPGMEdge>
    */
   E initEdge(GradoopId id, String label, GradoopId sourceVertexId,
     GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds);
+
+  E createEdge(String label, GradoopId sourceVertexId, GradoopId targetVertexId,
+               Properties properties, GradoopIdSet graphIds, Long from, Long to);
+
+  E initEdge(GradoopId id, String label, GradoopId sourceVertexId,
+             GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds, Long from, Long to);
 }

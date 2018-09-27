@@ -76,4 +76,8 @@ public interface EPGMGraphHeadFactory<G extends EPGMGraphHead>
    * @return graph data
    */
   G initGraphHead(GradoopId id, String label, Properties properties);
+
+  G createGraphHead(String label, Properties properties, Long from, Long to);
+
+  G initGraphHead(GradoopId id, String label, Properties properties, Long from, Long to);
 }

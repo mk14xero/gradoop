@@ -89,6 +89,7 @@ public class HBaseEPGMStore implements
    */
   private volatile boolean autoFlush;
 
+
   /**
    * Creates a HBaseEPGMStore based on the given parameters. All parameters
    * are mandatory and must not be {@code null}.
@@ -111,6 +112,7 @@ public class HBaseEPGMStore implements
     this.edgeTable = Preconditions.checkNotNull(edgeTable);
     this.config = Preconditions.checkNotNull(config);
     this.admin = Preconditions.checkNotNull(admin);
+
   }
 
   /**
@@ -152,7 +154,7 @@ public class HBaseEPGMStore implements
   public void writeGraphHead(@Nonnull final EPGMGraphHead graphHead) throws IOException {
     GraphHeadHandler graphHeadHandler = config.getGraphHeadHandler();
     // graph id
-    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
+    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId(), graphHead.getFrom()));
     // write graph to Put
     put = graphHeadHandler.writeGraphHead(put, graphHead);
     // write to table
@@ -169,7 +171,7 @@ public class HBaseEPGMStore implements
   public void writeVertex(@Nonnull final EPGMVertex vertexData) throws IOException {
     VertexHandler vertexHandler = config.getVertexHandler();
     // vertex id
-    Put put = new Put(vertexHandler.getRowKey(vertexData.getId()));
+    Put put = new Put(vertexHandler.getRowKey(vertexData.getId(), vertexData.getFrom()));
     // write vertex data to Put
     put = vertexHandler.writeVertex(put, vertexData);
     // write to table
@@ -187,7 +189,7 @@ public class HBaseEPGMStore implements
     // write to table
     EdgeHandler edgeHandler = config.getEdgeHandler();
     // edge id
-    Put put = new Put(edgeHandler.getRowKey(edgeData.getId()));
+    Put put = new Put(edgeHandler.getRowKey(edgeData.getId(), edgeData.getFrom()));
     // write edge data to Put
     put = edgeHandler.writeEdge(put, edgeData);
     edgeTable.put(put);
@@ -200,10 +202,11 @@ public class HBaseEPGMStore implements
    * {@inheritDoc}
    */
   @Override
-  public GraphHead readGraph(@Nonnull final GradoopId graphId) throws IOException {
+  public GraphHead readGraph(@Nonnull final GradoopId graphId, final long from) throws IOException {
     GraphHead graphData = null;
     GraphHeadHandler graphHeadHandler = config.getGraphHeadHandler();
-    Result res = graphHeadTable.get(new Get(graphId.toByteArray()));
+    byte[] rowKey = graphHeadHandler.getRowKey(graphId, from);
+    Result res = graphHeadTable.get(new Get(rowKey));
     if (!res.isEmpty()) {
       graphData = graphHeadHandler.readGraphHead(res);
     }
@@ -214,10 +217,10 @@ public class HBaseEPGMStore implements
    * {@inheritDoc}
    */
   @Override
-  public Vertex readVertex(@Nonnull final GradoopId vertexId) throws IOException {
+  public Vertex readVertex(@Nonnull final GradoopId vertexId, final long from) throws IOException {
     Vertex vertexData = null;
     VertexHandler vertexHandler = config.getVertexHandler();
-    byte[] rowKey = vertexHandler.getRowKey(vertexId);
+    byte[] rowKey = vertexHandler.getRowKey(vertexId, from);
     Result res = vertexTable.get(new Get(rowKey));
     if (!res.isEmpty()) {
       vertexData = vertexHandler.readVertex(res);
@@ -229,10 +232,10 @@ public class HBaseEPGMStore implements
    * {@inheritDoc}
    */
   @Override
-  public Edge readEdge(@Nonnull final GradoopId edgeId) throws IOException {
+  public Edge readEdge(@Nonnull final GradoopId edgeId, final long from) throws IOException {
     Edge edgeData = null;
     EdgeHandler edgeHandler = config.getEdgeHandler();
-    byte[] rowKey = edgeHandler.getRowKey(edgeId);
+    byte[] rowKey = edgeHandler.getRowKey(edgeId, from);
     Result res = edgeTable.get(new Get(rowKey));
     if (!res.isEmpty()) {
       edgeData = edgeHandler.readEdge(res);

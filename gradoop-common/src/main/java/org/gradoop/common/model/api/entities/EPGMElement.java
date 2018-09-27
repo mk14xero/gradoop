@@ -26,4 +26,13 @@ import java.io.Serializable;
  */
 public interface EPGMElement
   extends EPGMIdentifiable, EPGMLabeled, EPGMAttributed, Serializable {
+
+    Long getFrom();
+
+    void setFrom(Long from);
+
+    Long getTo();
+
+    void setTo(Long to);
+
 }

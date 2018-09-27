@@ -40,7 +40,7 @@ public interface ElementHandler extends Serializable {
    *                   null}).
    * @return persistent entity identifier
    */
-  byte[] getRowKey(final GradoopId entityData) throws IOException;
+  byte[] getRowKey(final GradoopId entityData, long from) throws IOException;
 
   /**
    * Creates an identifier from a given row key.
@@ -61,6 +61,21 @@ public interface ElementHandler extends Serializable {
     final Put put,
     final EPGMElement entity
   );
+
+  Put writeFrom(
+          final Put put,
+          final EPGMElement entity
+  );
+
+  Put writeTo(
+          final Put put,
+          final EPGMElement entity
+  );
+
+
+    Long readFrom(final Result res);
+
+    Long readTo(final Result res);
 
   /**
    * Adds the given property to the {@link Put} and returns it.
@@ -97,6 +112,7 @@ public interface ElementHandler extends Serializable {
    */
   Properties readProperties(final Result res);
 
+
   /**
    * Creates table based on the given table descriptor.
    *
@@ -104,5 +120,6 @@ public interface ElementHandler extends Serializable {
    * @param tableDescriptor description of the table used by that specific handler
    * @throws IOException on failure
    */
+
   void createTable(final Admin admin, final HTableDescriptor tableDescriptor) throws IOException;
 }

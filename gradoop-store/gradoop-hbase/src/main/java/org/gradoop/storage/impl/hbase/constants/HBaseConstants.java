@@ -60,4 +60,13 @@ public final class HBaseConstants {
    * Column identifier for target vertex identifier.
    */
   public static final String COL_TARGET = "t";
+    /**
+     * Column family for offset.
+     */
+  public static final String CF_TS = "timestamp";
+
+  public static final String COL_TS_FROM = "from";
+
+  public static final String COL_TS_TO= "to";
+
 }
