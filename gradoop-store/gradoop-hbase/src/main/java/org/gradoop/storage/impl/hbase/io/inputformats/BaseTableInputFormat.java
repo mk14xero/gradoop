@@ -16,11 +16,13 @@
 package org.gradoop.storage.impl.hbase.io.inputformats;
 
 import org.apache.flink.addons.hbase.TableInputFormat;
+import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.gradoop.common.model.api.entities.EPGMElement;
 import org.gradoop.storage.common.predicate.query.ElementQuery;
+import org.gradoop.storage.impl.hbase.io.HBaseDataSource;
 import org.gradoop.storage.impl.hbase.predicate.filter.HBaseFilterUtils;
 import org.gradoop.storage.impl.hbase.predicate.filter.api.HBaseElementFilter;
 
@@ -32,6 +34,18 @@ import javax.annotation.Nonnull;
  * @param <E> type of EPGM element
  */
 abstract class BaseTableInputFormat<E extends EPGMElement> extends TableInputFormat<Tuple1<E>> {
+
+  public Long begin = null;
+
+  public Long end = null;
+
+  public HBaseDataSource.Querytype type = HBaseDataSource.Querytype.ALL;
+
+  public void setTemps(Long begin, Long end, HBaseDataSource.Querytype type) {
+    this.begin = begin;
+    this.end = end;
+    this.type = type;
+  }
 
   /**
    * Attach a HBase filter represented by the given query to the given scan instance.
@@ -55,4 +69,5 @@ abstract class BaseTableInputFormat<E extends EPGMElement> extends TableInputFor
       scan.setFilter(conjunctFilters);
     }
   }
+
 }

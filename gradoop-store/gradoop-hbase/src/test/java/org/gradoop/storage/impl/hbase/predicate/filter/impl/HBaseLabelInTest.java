@@ -49,7 +49,7 @@ public class HBaseLabelInTest {
       SingleColumnValueFilter valueFilter = new SingleColumnValueFilter(
         Bytes.toBytesBinary(CF_META),
         Bytes.toBytesBinary(COL_LABEL),
-        CompareFilter.CompareOp.EQUAL,
+        CompareFilter.CompareOp.GREATER_OR_EQUAL,
         Bytes.toBytesBinary(label)
       );
       expectedFilterList.addFilter(valueFilter);

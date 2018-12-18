@@ -128,35 +128,36 @@ public class EdgeFactory implements EPGMEdgeFactory<Edge>, Serializable {
       label, sourceVertexId, targetVertexId, properties, graphIds);
   }
 
+  @Override
+  public Edge initEdge(GradoopId id, String label, GradoopId sourceVertexId,
+                       GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds) {
+    checkNotNull(id, "Identifier was null");
+    checkNotNull(label, "Label was null");
+    checkNotNull(sourceVertexId, "Source vertex id was null");
+    checkNotNull(targetVertexId, "Target vertex id was null");
+    return new Edge(id, label, sourceVertexId, targetVertexId, properties, graphIds);
+  }
+
   /**
    * {@inheritDoc}
    */
-
+  @Override
   public Edge initEdge(final GradoopId id, final String label,
     final GradoopId sourceVertexId, final GradoopId targetVertexId,
-    final Properties properties, final Long from, final Long to, GradoopIdSet graphIds) {
+    final Properties properties, GradoopIdSet graphIds, final Long from, final Long to) {
     checkNotNull(id, "Identifier was null");
     checkNotNull(label, "Label was null");
     checkNotNull(sourceVertexId, "Source vertex id was null");
     checkNotNull(targetVertexId, "Target vertex id was null");
     return new Edge(id, label, sourceVertexId, targetVertexId,
-      properties, from, to, graphIds);
+      properties, graphIds, from, to);
   }
 
   @Override
-  public Edge createEdge(String label, GradoopId sourceVertexId, GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds, Long from, Long to) {
-    return null;
-  }
-
-  @Override
-  public Edge initEdge(GradoopId id, String label, GradoopId sourceVertexId, GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds, Long from, Long to) {
-    return null;
-  }
-
-
-  @Override
-  public Edge initEdge(GradoopId id, String label, GradoopId sourceVertexId, GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds) {
-    return null;
+  public Edge createEdge(String label, GradoopId sourceVertexId, GradoopId targetVertexId,
+                         Properties properties, GradoopIdSet graphIds, Long from, Long to) {
+    return initEdge(GradoopId.get(),
+            label, sourceVertexId, targetVertexId, properties, graphIds, from, to);
   }
 
   @Override

@@ -70,7 +70,13 @@ public class BuildGraphHeadMutation extends
 
   public Tuple2<GradoopId, Mutation> map(GraphHead graphHead) throws Exception {
     GradoopId key = graphHead.getId();
-    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId(), graphHead.getFrom()));
+    Put put;
+    if (graphHead.getFrom() == null){
+      put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
+    }
+    else {
+      put = new Put(graphHeadHandler.getRowKey(graphHead.getId(), graphHead.getFrom()));
+    }
     put = graphHeadHandler.writeGraphHead(put, graphHead);
 
     reuseTuple.f0 = key;

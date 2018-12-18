@@ -46,8 +46,16 @@ public abstract class GraphElement
    * @param properties element properties
    * @param graphIds     graphIds that element is contained in
    */
+
   protected GraphElement(GradoopId id, String label,
-    Properties properties, Long from, Long to, GradoopIdSet graphIds) {
+                         Properties properties, GradoopIdSet graphIds) {
+    super(id, label, properties);
+    this.graphIds = graphIds;
+  }
+
+
+  protected GraphElement(GradoopId id, String label,
+    Properties properties, GradoopIdSet graphIds, Long from, Long to) {
     super(id, label, properties, from, to);
     this.graphIds = graphIds;
   }

@@ -15,6 +15,7 @@
  */
 package org.gradoop.storage.impl.hbase.handler;
 
+import javassist.bytecode.ByteArray;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -25,8 +26,10 @@ import org.gradoop.common.model.impl.properties.Property;
 import org.gradoop.common.model.impl.properties.PropertyValueUtils;
 import org.gradoop.storage.impl.hbase.api.ElementHandler;
 import org.gradoop.storage.impl.hbase.constants.HBaseConstants;
+import scala.util.control.Exception;
 
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 /**
@@ -66,13 +69,25 @@ public abstract class HBaseElementHandler implements ElementHandler {
   /**
    * {@inheritDoc}
    */
+
+  @Override
+  public byte[] getRowKey(final GradoopId elementId){
+    return getRowKey(elementId, Long.MIN_VALUE);
+  }
+
   @Override
   public byte[] getRowKey(final GradoopId elementId, long from){
-    byte[] gradoopId = elementId.toByteArray(); // 12 Byte
-    byte[] underscore = "_".getBytes(); // 1 Byte ??
-    byte[] fromBytes = ByteBuffer.allocate(Long.BYTES).putLong(from).array(); // 16 Byte
 
-    return ByteBuffer.allocate(fromBytes.length + underscore.length + gradoopId.length).put(fromBytes).put(underscore).put(gradoopId).array();
+    String underscoreString = "_";
+    byte[] gradoopId = elementId.toByteArray(); // 12 Byte
+    byte[] underscore = underscoreString.getBytes(Charset.defaultCharset()); // 1 Byte
+    byte[] fromBytes = ByteBuffer.allocate(Long.BYTES).putLong(from).array(); // 8 Byte
+
+    return ByteBuffer.allocate(fromBytes.length + underscore.length + gradoopId.length)
+        .put(fromBytes)
+        .put(underscore)
+        .put(gradoopId)
+        .array();
   }
 
   /**
@@ -84,7 +99,7 @@ public abstract class HBaseElementHandler implements ElementHandler {
       throw new IllegalArgumentException("rowKey must not be null");
     }
         byte[] gradoopId = new byte[12];
-        System.arraycopy(rowKey,17, gradoopId, 0, 12);
+        System.arraycopy(rowKey,9, gradoopId, 0, 12);
 
         return GradoopId.fromByteArray(gradoopId);
   }
@@ -130,11 +145,11 @@ public abstract class HBaseElementHandler implements ElementHandler {
       put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES, Bytes.toBytes(entity.getFrom()));
   }
 
-    @Override
-    public Put writeTo(final Put put, final EPGMElement entity) {
-        return (entity.getTo() == null) ? put :
-                put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES, Bytes.toBytes(entity.getTo()));
-    }
+  @Override
+  public Put writeTo(final Put put, final EPGMElement entity) {
+      return (entity.getTo() == null) ? put :
+              put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES, Bytes.toBytes(entity.getTo()));
+  }
 
   /**
    * {@inheritDoc}
@@ -147,12 +162,22 @@ public abstract class HBaseElementHandler implements ElementHandler {
 
   @Override
   public Long readFrom(final Result res) {
-    return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES));
+    if (res.getValue(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES) == null) {
+      return Long.MIN_VALUE;
+    }
+    else {
+      return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES));
+    }
   }
 
   @Override
   public Long readTo(final Result res) {
-    return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES));
+    if (res.getValue(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES) == null) {
+      return Long.MAX_VALUE;
+    }
+    else {
+      return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES));
+    }
   }
 
   /**
@@ -185,6 +210,10 @@ public abstract class HBaseElementHandler implements ElementHandler {
    * @return gradoop id
    */
   GradoopId readId(Result res) {
-    return GradoopId.fromByteArray(res.getRow());
+
+    byte[] gradoopId = new byte[12];
+    System.arraycopy(res.getRow(),9, gradoopId, 0, 12);
+
+    return GradoopId.fromByteArray(gradoopId);
   }
 }

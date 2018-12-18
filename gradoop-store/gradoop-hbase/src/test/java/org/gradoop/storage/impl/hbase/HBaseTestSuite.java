@@ -16,6 +16,7 @@
 package org.gradoop.storage.impl.hbase;
 
 import org.gradoop.storage.impl.hbase.io.HBaseDataSinkSourceTest;
+import org.gradoop.storage.impl.hbase.io.HBaseTempTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -28,8 +29,11 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  HBaseGraphStoreTest.class,
-  HBaseDataSinkSourceTest.class
+  HBaseTempTest.class,
+  HBaseDataSinkSourceTest.class,
+  HBaseGraphStoreTest.class
+
+
 })
 public class HBaseTestSuite {
 

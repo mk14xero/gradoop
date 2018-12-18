@@ -18,6 +18,7 @@ package org.gradoop.storage.impl.hbase.io;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.typeutils.TupleTypeInfo;
 import org.apache.flink.api.java.typeutils.TypeExtractor;
+import org.apache.hadoop.mapred.InputFormat;
 import org.gradoop.common.model.impl.pojo.Edge;
 import org.gradoop.common.model.impl.pojo.GraphHead;
 import org.gradoop.common.model.impl.pojo.Vertex;
@@ -62,6 +63,34 @@ public class HBaseDataSource extends HBaseBase
    * Query definition for edges
    */
   private final ElementQuery<HBaseElementFilter<Edge>> edgeQuery;
+
+  public Long begin = null;
+
+  public Long end = null;
+
+  public Querytype type = Querytype.ALL;
+
+  public enum Querytype{
+    AS_OF, BETWEEN_IN, CONTAINED_IN, CREATED_IN, DELETED_IN, FROM_TO, VALID_DURING, ALL
+  }
+
+  public void setTemps(Long begin, Long end, Querytype type) {
+    this.begin = begin;
+    this.end = end;
+    this.type = type;
+  }
+
+  public Long getBegin() {
+    return begin;
+  }
+
+  public Long getEnd() {
+    return end;
+  }
+
+  public Querytype getType() {
+    return type;
+  }
 
   /**
    * Creates a new HBase data source.
@@ -114,24 +143,35 @@ public class HBaseDataSource extends HBaseBase
     GradoopFlinkConfig config = getFlinkConfig();
     HBaseEPGMStore store = getStore();
 
+    GraphHeadTableInputFormat graphheadtableinputformat = new GraphHeadTableInputFormat(
+        getHBaseConfig().getGraphHeadHandler().applyQuery(graphHeadQuery),
+        store.getGraphHeadName());
+    graphheadtableinputformat.setTemps(begin, end, type);
+
     DataSet<GraphHead> graphHeads = config.getExecutionEnvironment()
-      .createInput(new GraphHeadTableInputFormat(
-          getHBaseConfig().getGraphHeadHandler().applyQuery(graphHeadQuery),
-          store.getGraphHeadName()),
-        new TupleTypeInfo<>(TypeExtractor.createTypeInfo(config.getGraphHeadFactory().getType())))
-      .map(new ValueOf1<>());
+        .createInput(graphheadtableinputformat,
+            new TupleTypeInfo<>(TypeExtractor.createTypeInfo(config.getGraphHeadFactory().getType())))
+        .map(new ValueOf1<>());
+
+
+    VertexTableInputFormat vertextableinputformat = new VertexTableInputFormat(getHBaseConfig()
+        .getVertexHandler().applyQuery(vertexQuery),
+        store.getVertexTableName());
+    vertextableinputformat.setTemps(begin, end, type);
 
     DataSet<Vertex> vertices = config.getExecutionEnvironment()
-      .createInput(new VertexTableInputFormat(
-          getHBaseConfig().getVertexHandler().applyQuery(vertexQuery),
-          store.getVertexTableName()),
-        new TupleTypeInfo<>(TypeExtractor.createTypeInfo(config.getVertexFactory().getType())))
-      .map(new ValueOf1<>());
+        .createInput(vertextableinputformat,
+            new TupleTypeInfo<>(TypeExtractor.createTypeInfo(config.getVertexFactory().getType())))
+        .map(new ValueOf1<>());
+
+
+    EdgeTableInputFormat edgetableinputformat = new EdgeTableInputFormat(getHBaseConfig().
+        getEdgeHandler().applyQuery(edgeQuery),
+        store.getEdgeTableName());
+    edgetableinputformat.setTemps(begin, end, type);
 
     DataSet<Edge> edges = config.getExecutionEnvironment()
-      .createInput(new EdgeTableInputFormat(
-          getHBaseConfig().getEdgeHandler().applyQuery(edgeQuery),
-          store.getEdgeTableName()),
+      .createInput(edgetableinputformat,
         new TupleTypeInfo<>(TypeExtractor.createTypeInfo(config.getEdgeFactory().getType())))
       .map(new ValueOf1<>());
 

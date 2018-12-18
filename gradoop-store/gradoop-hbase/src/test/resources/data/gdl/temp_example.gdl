@@ -1,0 +1,45 @@
+// all vertices
+(databases:Tag {name : "Databases"})
+(graphs:Tag {name : "Graphs"})
+(hadoop:Tag {name : "Hadoop"})
+(gdbs:Forum {title : "Graph Databases"})
+(gps:Forum {title : "Graph Processing"})
+(alice:Person {name : "Alice", gender : "f", city : "Leipzig", age : 20, to: 1514764800000L})
+(bob:Person {name : "Bob", gender : "m", city : "Leipzig", age : 30})
+(carol:Person {name : "Carol", gender : "f", city : "Dresden", age : 30})
+(dave:Person {name : "Dave", gender : "m", city : "Dresden", age : 40, from: 280451760000L, to:985130160000L})
+(eve:Person {name : "Eve", gender : "f", city : "Dresden", speaks : "English", age : 37, from:357675000000L, to: 1505067000000L})
+(frank:Person {name : "Frank", gender : "m", city : "Berlin", locIP : "127.0.0.1", age : 37, from:357888000000L})
+
+// edges outside logical graphs
+(eve)-[:hasInterest{from:1136419200000L}]->(databases)
+(alice)-[:hasInterest{ from:1407481500000L}]->(databases)
+(frank)-[:hasInterest]->(hadoop)
+(dave)-[:hasInterest]->(hadoop)
+(gdbs)-[:hasModerator {from: 1479413700000L, to: 1484079300000L}]->(alice)
+(gdbs)-[:hasMember {status : "poweruser", from: 1381436100000L, to: 1384114500000L}]->(alice)
+(gdbs)-[:hasMember {status : "starter", from: 1501272900000L, to:1509221700000L}]->(bob)
+
+(databases)<-[ghtd:hasTag]-(gdbs)-[ghtg1:hasTag]->(graphs)<-[ghtg2:hasTag]-(gps)-[ghth:hasTag]->(hadoop)
+
+// logical graphs
+g0:Community[
+    (databases:Tag {name : "Databases"})
+    (graphs:Tag {name : "Graphs"})
+    (hadoop:Tag {name : "Hadoop"})
+    (gdbs:Forum {title : "Graph Databases"})
+    (gps:Forum {title : "Graph Processing"})
+    (alice:Person {name : "Alice", gender : "f", city : "Leipzig", age : 20, from: 1514764800000L})
+    (bob:Person {name : "Bob", gender : "m", city : "Leipzig", age : 30})
+    (carol:Person {name : "Carol", gender : "f", city : "Dresden", age : 30})
+    (dave:Person {name : "Dave", gender : "m", city : "Dresden", age : 40, from: 280451760000L, to:985130160000L})
+    (eve:Person {name : "Eve", gender : "f", city : "Dresden", speaks : "English", age : 37, from:357675000000L, to: 1505067000000L})
+    (frank:Person {name : "Frank", gender : "m", city : "Berlin", locIP : "127.0.0.1", age : 37, from:357888000000L})
+    (eve)-[:hasInterest{from:1136419200000L}]->(databases)
+    (alice)-[:hasInterest{from:1407481500000L}]->(databases)
+    (frank)-[:hasInterest]->(hadoop)
+    (dave)-[:hasInterest]->(hadoop)
+    (gdbs)-[:hasModerator {from: 1479413700000L, to: 1484079300000L}]->(alice)
+    (gdbs)-[:hasMember {status : "poweruser", from: 1381436100000L, to: 1384114500000L}]->(alice)
+    (gdbs)-[:hasMember {status : "starter", from: 1501272900000L, to:1509221700000L}]->(bob)
+]

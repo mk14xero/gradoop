@@ -40,8 +40,13 @@ public class Vertex extends GraphElement implements EPGMVertex {
    * @param graphs     graphs that vertex is contained in
    */
   public Vertex(final GradoopId id, final String label,
+                final Properties properties, final GradoopIdSet graphs) {
+    super(id, label, properties, graphs);
+  }
+
+  public Vertex(final GradoopId id, final String label,
     final Properties properties, final GradoopIdSet graphs, final Long from, final Long to) {
-    super(id, label, properties, from, to, graphs);
+    super(id, label, properties, graphs, from, to);
   }
 
   @Override

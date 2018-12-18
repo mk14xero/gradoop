@@ -152,9 +152,13 @@ public class HBaseEPGMStore implements
    */
   @Override
   public void writeGraphHead(@Nonnull final EPGMGraphHead graphHead) throws IOException {
+    Put put;
     GraphHeadHandler graphHeadHandler = config.getGraphHeadHandler();
     // graph id
-    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId(), graphHead.getFrom()));
+    if (graphHead.getFrom() == null)
+      put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
+    else
+      put = new Put(graphHeadHandler.getRowKey(graphHead.getId()), graphHead.getFrom());
     // write graph to Put
     put = graphHeadHandler.writeGraphHead(put, graphHead);
     // write to table
@@ -169,9 +173,13 @@ public class HBaseEPGMStore implements
    */
   @Override
   public void writeVertex(@Nonnull final EPGMVertex vertexData) throws IOException {
+    Put put;
     VertexHandler vertexHandler = config.getVertexHandler();
     // vertex id
-    Put put = new Put(vertexHandler.getRowKey(vertexData.getId(), vertexData.getFrom()));
+    if (vertexData.getFrom() == null)
+      put = new Put(vertexHandler.getRowKey(vertexData.getId()));
+    else
+      put = new Put(vertexHandler.getRowKey(vertexData.getId(), vertexData.getFrom()));
     // write vertex data to Put
     put = vertexHandler.writeVertex(put, vertexData);
     // write to table
@@ -186,10 +194,14 @@ public class HBaseEPGMStore implements
    */
   @Override
   public void writeEdge(@Nonnull final EPGMEdge edgeData) throws IOException {
+    Put put;
     // write to table
     EdgeHandler edgeHandler = config.getEdgeHandler();
     // edge id
-    Put put = new Put(edgeHandler.getRowKey(edgeData.getId(), edgeData.getFrom()));
+    if (edgeData.getFrom() == null)
+    put = new Put(edgeHandler.getRowKey(edgeData.getId()));
+    else
+    put = new Put(edgeHandler.getRowKey(edgeData.getId(), edgeData.getFrom()));
     // write edge data to Put
     put = edgeHandler.writeEdge(put, edgeData);
     edgeTable.put(put);
@@ -202,10 +214,10 @@ public class HBaseEPGMStore implements
    * {@inheritDoc}
    */
   @Override
-  public GraphHead readGraph(@Nonnull final GradoopId graphId, final long from) throws IOException {
+  public GraphHead readGraph(@Nonnull final GradoopId graphId) throws IOException {
     GraphHead graphData = null;
     GraphHeadHandler graphHeadHandler = config.getGraphHeadHandler();
-    byte[] rowKey = graphHeadHandler.getRowKey(graphId, from);
+    byte[] rowKey = graphHeadHandler.getRowKey(graphId);
     Result res = graphHeadTable.get(new Get(rowKey));
     if (!res.isEmpty()) {
       graphData = graphHeadHandler.readGraphHead(res);
@@ -217,10 +229,10 @@ public class HBaseEPGMStore implements
    * {@inheritDoc}
    */
   @Override
-  public Vertex readVertex(@Nonnull final GradoopId vertexId, final long from) throws IOException {
+  public Vertex readVertex(@Nonnull final GradoopId vertexId) throws IOException {
     Vertex vertexData = null;
     VertexHandler vertexHandler = config.getVertexHandler();
-    byte[] rowKey = vertexHandler.getRowKey(vertexId, from);
+    byte[] rowKey = vertexHandler.getRowKey(vertexId);
     Result res = vertexTable.get(new Get(rowKey));
     if (!res.isEmpty()) {
       vertexData = vertexHandler.readVertex(res);
@@ -232,10 +244,10 @@ public class HBaseEPGMStore implements
    * {@inheritDoc}
    */
   @Override
-  public Edge readEdge(@Nonnull final GradoopId edgeId, final long from) throws IOException {
+  public Edge readEdge(@Nonnull final GradoopId edgeId) throws IOException {
     Edge edgeData = null;
     EdgeHandler edgeHandler = config.getEdgeHandler();
-    byte[] rowKey = edgeHandler.getRowKey(edgeId, from);
+    byte[] rowKey = edgeHandler.getRowKey(edgeId);
     Result res = edgeTable.get(new Get(rowKey));
     if (!res.isEmpty()) {
       edgeData = edgeHandler.readEdge(res);
@@ -329,6 +341,16 @@ public class HBaseEPGMStore implements
     vertexTable.close();
     edgeTable.close();
     graphHeadTable.close();
+  }
+
+  public void drop() throws IOException {
+    admin.disableTable(vertexTable.getName());
+    admin.disableTable(edgeTable.getName());
+    admin.disableTable(graphHeadTable.getName());
+
+    admin.deleteTable(vertexTable.getName());
+    admin.deleteTable(edgeTable.getName());
+    admin.deleteTable(graphHeadTable.getName());
   }
 
   /**

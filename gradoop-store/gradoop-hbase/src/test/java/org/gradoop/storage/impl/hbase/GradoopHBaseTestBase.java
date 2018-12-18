@@ -22,6 +22,9 @@ import org.gradoop.common.GradoopTestUtils;
 import org.gradoop.common.model.impl.pojo.Edge;
 import org.gradoop.common.model.impl.pojo.GraphHead;
 import org.gradoop.common.model.impl.pojo.Vertex;
+import org.gradoop.flink.model.api.epgm.GraphCollection;
+import org.gradoop.flink.model.api.epgm.LogicalGraph;
+import org.gradoop.flink.util.FlinkAsciiGraphLoader;
 import org.gradoop.storage.config.GradoopHBaseConfig;
 import org.gradoop.storage.impl.hbase.factory.HBaseEPGMStoreFactory;
 
@@ -57,6 +60,10 @@ public class GradoopHBaseTestBase {
   private static Collection<GraphHead> socialGraphHeads;
   private static Collection<Vertex> socialVertices;
   private static Collection<Edge> socialEdges;
+
+  private static Collection<GraphHead> CinemaGraphHeads;
+  private static Collection<Vertex> CinemaVertices;
+  private static Collection<Edge> CinemaEdges;
 
   //----------------------------------------------------------------------------
   // Cluster related

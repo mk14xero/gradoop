@@ -38,9 +38,12 @@ public interface ElementHandler extends Serializable {
    *
    * @param entityData used to create row key from (must not be {@code
    *                   null}).
+   * @param from       from timestamp
    * @return persistent entity identifier
    */
   byte[] getRowKey(final GradoopId entityData, long from) throws IOException;
+
+  byte[] getRowKey(final GradoopId entityData) throws IOException;
 
   /**
    * Creates an identifier from a given row key.

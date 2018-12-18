@@ -67,6 +67,6 @@ public final class HBaseConstants {
 
   public static final String COL_TS_FROM = "from";
 
-  public static final String COL_TS_TO= "to";
+  public static final String COL_TS_TO = "to";
 
 }

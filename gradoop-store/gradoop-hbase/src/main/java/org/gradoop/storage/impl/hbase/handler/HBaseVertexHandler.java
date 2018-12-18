@@ -66,7 +66,7 @@ public class HBaseVertexHandler extends HBaseGraphElementHandler implements Vert
    * @param vertexFactory used to create runtime vertex data objects
    */
   public HBaseVertexHandler(EPGMVertexFactory<Vertex> vertexFactory) {
-    this.vertexFactory = vertexFactory;
+        this.vertexFactory = vertexFactory;
   }
 
   /**

@@ -60,7 +60,13 @@ public class BuildEdgeMutation extends RichMapFunction<Edge, Tuple2<GradoopId, M
 
   public Tuple2<GradoopId, Mutation> map(Edge edge) throws Exception {
     GradoopId key = edge.getId();
-    Put put = new Put(edgeHandler.getRowKey(edge.getId(), edge.getFrom()));
+    Put put;
+    if (edge.getFrom() == null){
+      put = new Put(edgeHandler.getRowKey(edge.getId()));
+    }
+    else{
+      put = new Put(edgeHandler.getRowKey(edge.getId(), edge.getFrom()));
+    }
     put = edgeHandler.writeEdge(put, edge);
 
     reuseTuple.f0 = key;

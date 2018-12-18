@@ -61,6 +61,25 @@ public abstract class Element implements EPGMElement {
    * @param label      entity label
    * @param properties key-value properties
    */
+
+  protected Element(
+          GradoopId id, String label, Properties properties) {
+    this.id = id;
+    this.label = label;
+    this.properties = properties;
+  }
+
+  /**
+   * Creates an object from the given parameters. Can only be called by
+   * inheriting classes.
+   *
+   * @param id         entity identifier
+   * @param label      entity label
+   * @param properties key-value properties
+   * @param from       from timestamp
+   * @param to         to timestamp
+   */
+
   protected Element(
     GradoopId id, String label, Properties properties, Long from, Long to) {
     this.id = id;
