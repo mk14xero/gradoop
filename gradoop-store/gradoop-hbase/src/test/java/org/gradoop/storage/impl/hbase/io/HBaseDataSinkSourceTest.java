@@ -27,8 +27,8 @@ import org.gradoop.common.model.impl.pojo.GraphHead;
 import org.gradoop.common.model.impl.pojo.Vertex;
 import org.gradoop.common.model.impl.properties.PropertyValue;
 import org.gradoop.flink.model.GradoopFlinkTestBase;
-import org.gradoop.flink.model.api.epgm.GraphCollection;
-import org.gradoop.flink.model.api.epgm.LogicalGraph;
+import org.gradoop.flink.model.impl.epgm.GraphCollection;
+import org.gradoop.flink.model.impl.epgm.LogicalGraph;
 import org.gradoop.flink.util.FlinkAsciiGraphLoader;
 import org.gradoop.flink.util.GradoopFlinkConfig;
 import org.gradoop.storage.common.predicate.query.Query;
@@ -40,7 +40,10 @@ import org.gradoop.storage.impl.hbase.predicate.filter.impl.HBasePropEquals;
 import org.gradoop.storage.impl.hbase.predicate.filter.impl.HBasePropLargerThan;
 import org.gradoop.storage.impl.hbase.predicate.filter.impl.HBasePropReg;
 import org.gradoop.storage.utils.HBaseFilters;
-import org.junit.*;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.FixMethodOrder;
+import org.junit.Test;
 import org.junit.runners.MethodSorters;
 
 import java.io.IOException;
@@ -82,7 +85,7 @@ import static org.junit.Assert.assertTrue;
  * Test class for {@link HBaseDataSource} and {@link HBaseDataSink}
  */
 @FixMethodOrder(MethodSorters.NAME_ASCENDING)
-public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
+public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase {
 
   /**
    * Global Flink config for sources and sinks
@@ -114,7 +117,7 @@ public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
     }
   }
 
-   /**
+  /**
    * Test reading a graph collection from {@link HBaseDataSource}
    */
   @Test
@@ -307,13 +310,13 @@ public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
 
     List<Edge> edges = Lists.newArrayList(getSocialEdges())
       .stream()
-      .filter(e -> (e.getLabel().equals(LABEL_HAS_MODERATOR) ||
-        e.getLabel().equals(LABEL_HAS_MEMBER)))
+      .filter(e -> e.getLabel().equals(LABEL_HAS_MODERATOR) ||
+        e.getLabel().equals(LABEL_HAS_MEMBER))
       .collect(Collectors.toList());
 
     List<Vertex> vertices = Lists.newArrayList(getSocialVertices())
       .stream()
-      .filter(e -> (e.getLabel().equals(LABEL_TAG) || e.getLabel().equals(LABEL_FORUM)))
+      .filter(e -> e.getLabel().equals(LABEL_TAG) || e.getLabel().equals(LABEL_FORUM))
       .collect(Collectors.toList());
 
     // Define HBase source
@@ -679,7 +682,7 @@ public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
   @Test
   public void testWriteToSink() throws Exception {
     // Create an empty store
-    HBaseEPGMStore epgmStore = createEmptyEPGMStore("testWriteToSink");
+    HBaseEPGMStore newStore = createEmptyEPGMStore("testWriteToSink");
 
     FlinkAsciiGraphLoader loader = new FlinkAsciiGraphLoader(config);
 
@@ -689,7 +692,7 @@ public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
     loader.initDatabaseFromStream(inputStream);
 
     GradoopFlinkConfig flinkConfig = GradoopFlinkConfig.createConfig(getExecutionEnvironment());
-    new HBaseDataSink(epgmStore, flinkConfig)
+    new HBaseDataSink(newStore, flinkConfig)
       .write(flinkConfig
         .getGraphCollectionFactory()
         .fromCollections(
@@ -699,32 +702,32 @@ public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
 
     getExecutionEnvironment().execute();
 
-    epgmStore.flush();
+    newStore.flush();
 
     // read social network from HBase
 
     // graph heads
     validateEPGMElementCollections(
       loader.getGraphHeads(),
-      epgmStore.getGraphSpace().readRemainsAndClose()
+      newStore.getGraphSpace().readRemainsAndClose()
     );
     // vertices
     validateEPGMElementCollections(
       loader.getVertices(),
-      epgmStore.getVertexSpace().readRemainsAndClose()
+      newStore.getVertexSpace().readRemainsAndClose()
     );
     validateEPGMGraphElementCollections(
       loader.getVertices(),
-      epgmStore.getVertexSpace().readRemainsAndClose()
+      newStore.getVertexSpace().readRemainsAndClose()
     );
     // edges
     validateEPGMElementCollections(
       loader.getEdges(),
-      epgmStore.getEdgeSpace().readRemainsAndClose()
+      newStore.getEdgeSpace().readRemainsAndClose()
     );
     validateEPGMGraphElementCollections(
       loader.getEdges(),
-      epgmStore.getEdgeSpace().readRemainsAndClose()
+      newStore.getEdgeSpace().readRemainsAndClose()
     );
   }
 
@@ -734,13 +737,13 @@ public class HBaseDataSinkSourceTest extends GradoopFlinkTestBase  {
   @Test(expected = NotImplementedException.class)
   public void testWriteToSinkWithOverWrite() throws Exception {
     // Create an empty store
-    HBaseEPGMStore epgmStore = createEmptyEPGMStore("testWriteToSink");
+    HBaseEPGMStore newStore = createEmptyEPGMStore("testWriteToSink");
 
     GradoopFlinkConfig flinkConfig = GradoopFlinkConfig.createConfig(getExecutionEnvironment());
     GraphCollection graphCollection = flinkConfig.getGraphCollectionFactory()
       .createEmptyCollection();
 
-    new HBaseDataSink(epgmStore, flinkConfig).write(graphCollection, true);
+    new HBaseDataSink(newStore, flinkConfig).write(graphCollection, true);
 
     getExecutionEnvironment().execute();
   }

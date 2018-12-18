@@ -15,8 +15,8 @@
  */
 package org.gradoop.flink.io.api;
 
-import org.gradoop.flink.model.api.epgm.GraphCollection;
-import org.gradoop.flink.model.api.epgm.LogicalGraph;
+import org.gradoop.flink.model.impl.epgm.GraphCollection;
+import org.gradoop.flink.model.impl.epgm.LogicalGraph;
 
 import java.io.IOException;
 
@@ -48,10 +48,10 @@ public interface DataSink {
   void write(LogicalGraph logicalGraph, boolean overwrite) throws IOException;
 
   /**
-   * Writes a graph collection to the data sink with overWrite option.
+   * Writes a graph collection to the data sink with overwrite option.
    *
    * @param graphCollection graph collection
-   * @param overWrite true, if existing files should be overwritten
+   * @param overwrite true, if existing files should be overwritten
    */
-  void write(GraphCollection graphCollection, boolean overWrite) throws IOException;
+  void write(GraphCollection graphCollection, boolean overwrite) throws IOException;
 }

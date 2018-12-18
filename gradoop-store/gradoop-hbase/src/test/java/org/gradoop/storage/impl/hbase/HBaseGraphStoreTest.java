@@ -389,6 +389,7 @@ public class HBaseGraphStoreTest extends GradoopHBaseTestBase {
         assertTrue(v.getPropertyValue(propertyKey).isSet());
         assertEquals(SET_VAL_f, v.getPropertyValue(propertyKey).getSet());
         break;
+      default: break;
       }
     }
 
@@ -541,7 +542,7 @@ public class HBaseGraphStoreTest extends GradoopHBaseTestBase {
 
     List<Vertex> vertices = Lists.newArrayList(getSocialVertices())
       .stream()
-      .filter(e -> (!e.getLabel().equals(LABEL_TAG) && !e.getLabel().equals(LABEL_FORUM)))
+      .filter(e -> !e.getLabel().equals(LABEL_TAG) && !e.getLabel().equals(LABEL_FORUM))
       .collect(Collectors.toList());
 
     // Query the store

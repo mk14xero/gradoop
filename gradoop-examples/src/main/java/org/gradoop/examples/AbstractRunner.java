@@ -27,11 +27,13 @@ import org.gradoop.flink.io.impl.csv.CSVDataSink;
 import org.gradoop.flink.io.impl.csv.CSVDataSource;
 import org.gradoop.flink.io.impl.csv.indexed.IndexedCSVDataSink;
 import org.gradoop.flink.io.impl.csv.indexed.IndexedCSVDataSource;
-import org.gradoop.flink.io.impl.json.JSONDataSink;
-import org.gradoop.flink.io.impl.json.JSONDataSource;
-import org.gradoop.flink.model.api.epgm.GraphCollection;
-import org.gradoop.flink.model.api.epgm.LogicalGraph;
+import org.gradoop.flink.io.impl.deprecated.json.JSONDataSink;
+import org.gradoop.flink.io.impl.deprecated.json.JSONDataSource;
+import org.gradoop.flink.model.impl.epgm.GraphCollection;
+import org.gradoop.flink.model.impl.epgm.LogicalGraph;
 import org.gradoop.flink.util.GradoopFlinkConfig;
+import org.gradoop.flink.io.impl.deprecated.logicalgraphcsv.LogicalGraphCSVDataSource;
+import org.gradoop.flink.io.impl.deprecated.logicalgraphcsv.LogicalGraphIndexedCSVDataSource;
 
 import java.io.File;
 import java.io.IOException;
@@ -90,7 +92,7 @@ public abstract class AbstractRunner {
    * @throws IOException on failure
    */
   protected static LogicalGraph readLogicalGraph(String directory, String format)
-    throws IOException {
+      throws IOException {
     return getDataSource(directory, format).getLogicalGraph();
   }
 
@@ -103,7 +105,7 @@ public abstract class AbstractRunner {
    * @throws IOException on failure
    */
   protected static GraphCollection readGraphCollection(String directory, String format)
-    throws IOException {
+      throws IOException {
     return getDataSource(directory, format).getGraphCollection();
   }
 
@@ -127,8 +129,8 @@ public abstract class AbstractRunner {
    * @throws Exception on failure
    */
   protected static void writeLogicalGraph(LogicalGraph graph, String directory, String format)
-    throws Exception {
-    graph.writeTo(getDataSink(directory, format, graph.getConfig()));
+      throws Exception {
+    graph.writeTo(getDataSink(directory, format, graph.getConfig()), true);
     getExecutionEnvironment().execute();
   }
 
@@ -140,7 +142,7 @@ public abstract class AbstractRunner {
    * @throws Exception on failure
    */
   protected static void writeGraphCollection(GraphCollection collection, String directory)
-    throws Exception {
+      throws Exception {
     writeGraphCollection(collection, directory, DEFAULT_FORMAT);
   }
 
@@ -155,7 +157,7 @@ public abstract class AbstractRunner {
   protected static void writeGraphCollection(GraphCollection collection,
                                              String directory,
                                              String format)
-    throws Exception {
+      throws Exception {
     collection.writeTo(getDataSink(directory, format, collection.getConfig()));
     getExecutionEnvironment().execute();
   }
@@ -222,6 +224,10 @@ public abstract class AbstractRunner {
       return new CSVDataSource(directory, config);
     case "indexed":
       return new IndexedCSVDataSource(directory, config);
+    case "lgcsv":
+      return new LogicalGraphCSVDataSource(directory, config);
+    case "lgindexed":
+      return new LogicalGraphIndexedCSVDataSource(directory, config);
     default:
       throw new IllegalArgumentException("Unsupported format: " + format);
     }
