@@ -40,10 +40,7 @@ import org.gradoop.storage.impl.hbase.predicate.filter.impl.HBasePropEquals;
 import org.gradoop.storage.impl.hbase.predicate.filter.impl.HBasePropLargerThan;
 import org.gradoop.storage.impl.hbase.predicate.filter.impl.HBasePropReg;
 import org.gradoop.storage.utils.HBaseFilters;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.FixMethodOrder;
-import org.junit.Test;
+import org.junit.*;
 import org.junit.runners.MethodSorters;
 
 import java.io.IOException;

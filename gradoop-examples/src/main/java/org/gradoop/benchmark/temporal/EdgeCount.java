@@ -3,20 +3,12 @@ package org.gradoop.benchmark.temporal;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.flink.api.common.ProgramDescription;
-import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.gradoop.benchmark.subgraph.SubgraphBenchmark;
-import org.gradoop.benchmark.temporal.SubgraphOperators.*;
-import org.gradoop.common.model.impl.pojo.Edge;
-import org.gradoop.common.model.impl.pojo.Vertex;
 import org.gradoop.examples.AbstractRunner;
 import org.gradoop.flink.io.api.DataSink;
-import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSink;
-import org.gradoop.flink.io.impl.csv.CSVDataSource;
 import org.gradoop.flink.model.impl.epgm.LogicalGraph;
-import org.gradoop.flink.model.api.functions.TransformationFunction;
 import org.gradoop.flink.util.GradoopFlinkConfig;
 import org.gradoop.storage.config.GradoopHBaseConfig;
 import org.gradoop.storage.impl.hbase.HBaseEPGMStore;
@@ -29,7 +21,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
 
-public class TemporalGraphBenchmark extends AbstractRunner implements ProgramDescription {
+public class EdgeCount extends AbstractRunner implements ProgramDescription {
   /**
    * Option to declare prefix
    */
@@ -116,7 +108,7 @@ public class TemporalGraphBenchmark extends AbstractRunner implements ProgramDes
    * @throws Exception in case of Error
    */
   public static void main(String[] args) throws Exception {
-    CommandLine cmd = parseArguments(args, TemporalGraphBenchmark.class.getName());
+    CommandLine cmd = parseArguments(args, EdgeCount.class.getName());
 
     if (cmd == null) {
       System.exit(1);
@@ -146,45 +138,8 @@ public class TemporalGraphBenchmark extends AbstractRunner implements ProgramDes
     }
 
     logGraph = hBaseSource.getLogicalGraph();
+    long countedges = logGraph.getEdges().count();
 
-    switch (QUERYTYPE) {
-      case "asof":
-        FilterFunction<Vertex> vfilterASOF = new FilterASOF<>(Long.valueOf(FROM_TS));
-        FilterFunction<Edge> efilterASOF = new FilterASOF<>(Long.valueOf(FROM_TS));
-        logGraph = logGraph.subgraph(vfilterASOF, efilterASOF);
-        break;
-      case "fromto":
-        FilterFunction<Vertex> vfilterFROM = new FilterFROM<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        FilterFunction<Edge> efilterFROM = new FilterFROM<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        logGraph = logGraph.subgraph(vfilterFROM, efilterFROM);
-        break;
-      case "between":
-        FilterFunction<Vertex> vfilterBETWEEN = new FilterBETWEEN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        FilterFunction<Edge> efilterBETWEEN = new FilterBETWEEN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        logGraph = logGraph.subgraph(vfilterBETWEEN, efilterBETWEEN);
-        break;
-      case "containedin":
-        FilterFunction<Vertex> vfilterCONTAINEDIN = new FilterCONTAINEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        FilterFunction<Edge> efilterCONTAINEDIN = new FilterCONTAINEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        logGraph = logGraph.subgraph(vfilterCONTAINEDIN, efilterCONTAINEDIN);
-        break;
-      case "validduring":
-        FilterFunction<Vertex> vfilterVALIDDURING = new FilterVALIDDURING<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        FilterFunction<Edge> efilterVALIDDURING = new FilterVALIDDURING<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        logGraph = logGraph.subgraph(vfilterVALIDDURING, efilterVALIDDURING);
-        break;
-      case "createdin":
-        FilterFunction<Vertex> vfilterCREATEDIN = new FilterCREATEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        FilterFunction<Edge> efilterCREATEDIN = new FilterCREATEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        logGraph = logGraph.subgraph(vfilterCREATEDIN, efilterCREATEDIN);
-        break;
-      case "deletedin":
-        FilterFunction<Vertex> vfilterDELETEDIN = new FilterDELETEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        FilterFunction<Edge> efilterDELETEDIN = new FilterDELETEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
-        logGraph =  logGraph.subgraph(vfilterDELETEDIN, efilterDELETEDIN);
-        break;
-      default:
-    }
 
     //write graph to csv data sink
     DataSink sink = new CSVDataSink(OUTPUT_PATH, conf);
@@ -193,7 +148,7 @@ public class TemporalGraphBenchmark extends AbstractRunner implements ProgramDes
 
     // execute and write job statistics
     env.execute();
-    writeCSV(env);
+    writeCSV(env, countedges);
   }
 
   /**
@@ -264,25 +219,23 @@ public class TemporalGraphBenchmark extends AbstractRunner implements ProgramDes
   }
 
   // generation of csv file with all relevant measurements
-  private static void writeCSV(ExecutionEnvironment env) throws IOException {
+  private static void writeCSV(ExecutionEnvironment env, long countedges) throws IOException {
 
-    String head = String.format("%s|%s|%s|%s|%s|%s|%s%n",
+    String head = String.format("%s|%s|%s|%s|%s|%s%n",
         "SubsetFromHBase",
         "Querytype",
         "Dataset",
-        "Parallelism",
+        "Count",
         "From",
-        "To",
-        "Runtime(s)");
+        "To");
 
-    String tail = String.format("%s|%s|%s|%s|%s|%s|%s%n",
+    String tail = String.format("%s|%s|%s|%s|%s|%s%n",
         FILTER,
         QUERYTYPE,
         INPUT_PATH,
-        env.getParallelism(),
+        countedges,
         FROM_TS,
-        TO_TS,
-        env.getLastJobExecutionResult().getNetRuntime(TimeUnit.SECONDS));
+        TO_TS);
 
     File f = new File(CSV_PATH);
     if (f.exists() && !f.isDirectory()) {
@@ -299,6 +252,6 @@ public class TemporalGraphBenchmark extends AbstractRunner implements ProgramDes
    * {@inheritDoc}
    */
   @Override
-  public String getDescription() { return TemporalGraphBenchmark.class.getName();}
+  public String getDescription() { return EdgeCount.class.getName();}
 
 }

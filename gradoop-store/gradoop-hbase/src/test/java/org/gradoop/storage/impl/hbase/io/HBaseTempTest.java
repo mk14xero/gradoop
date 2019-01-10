@@ -3,34 +3,17 @@ package org.gradoop.storage.impl.hbase.io;
 
 import com.google.common.collect.Lists;
 import org.apache.commons.lang.NotImplementedException;
-import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.io.LocalCollectionOutputFormat;
-import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.TableName;
-import org.apache.hadoop.hbase.client.ResultScanner;
 import org.gradoop.common.GradoopTestUtils;
-import org.gradoop.common.config.GradoopConfig;
-import org.gradoop.common.model.api.entities.EPGMEdge;
-import org.gradoop.common.model.api.entities.EPGMGraphHead;
-import org.gradoop.common.model.api.entities.EPGMVertex;
 import org.gradoop.common.model.impl.pojo.Edge;
 import org.gradoop.common.model.impl.pojo.GraphHead;
 import org.gradoop.common.model.impl.pojo.Vertex;
 import org.gradoop.common.util.AsciiGraphLoader;
-import org.gradoop.flink.io.api.DataSink;
 import org.gradoop.flink.model.GradoopFlinkTestBase;
-import org.gradoop.flink.model.api.epgm.GraphCollection;
-import org.gradoop.flink.model.api.epgm.LogicalGraph;
-import org.gradoop.flink.model.api.functions.TransformationFunction;
-import org.gradoop.flink.util.FlinkAsciiGraphLoader;
+import org.gradoop.flink.model.impl.epgm.GraphCollection;
 import org.gradoop.flink.util.GradoopFlinkConfig;
-import org.gradoop.storage.config.GradoopHBaseConfig;
-import org.gradoop.storage.impl.hbase.GradoopHBaseTestBase;
 import org.gradoop.storage.impl.hbase.HBaseEPGMStore;
-import org.gradoop.storage.impl.hbase.api.VertexHandler;
-import org.gradoop.storage.impl.hbase.factory.HBaseEPGMStoreFactory;
 import org.junit.After;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -38,16 +21,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collection;
 import java.util.List;
-import java.util.Scanner;
 import java.util.stream.Collectors;
 
-import static org.apache.flink.api.java.ExecutionEnvironment.getExecutionEnvironment;
 import static org.gradoop.common.GradoopTestUtils.validateEPGMElementCollections;
-import static org.gradoop.common.GradoopTestUtils.validateEPGMGraphElementCollections;
 import static org.gradoop.storage.impl.hbase.GradoopHBaseTestBase.createEmptyEPGMStore;
 import static org.gradoop.storage.impl.hbase.GradoopHBaseTestBase.openEPGMStore;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 
 public class HBaseTempTest extends GradoopFlinkTestBase {

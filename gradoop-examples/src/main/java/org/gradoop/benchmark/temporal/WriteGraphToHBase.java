@@ -7,7 +7,7 @@ import org.gradoop.common.model.impl.pojo.Vertex;
 import org.gradoop.flink.io.api.DataSink;
 import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSource;
-import org.gradoop.flink.model.api.epgm.LogicalGraph;
+import org.gradoop.flink.model.impl.epgm.LogicalGraph;
 import org.gradoop.flink.model.api.functions.TransformationFunction;
 import org.gradoop.flink.util.GradoopFlinkConfig;
 import org.gradoop.storage.config.GradoopHBaseConfig;
@@ -50,16 +50,16 @@ public class WriteGraphToHBase {
           public Vertex apply(Vertex vertex, Vertex el1) {
 
             String birthday = "birthday";
-            String founded = "founded";
+            String creationDate = "creationDate";
 
 
             if (vertex.hasProperty(birthday)) {
               vertex.setFrom(vertex.getPropertyValue(birthday).getLong());
               vertex.setTo(vertex.getPropertyValue(birthday).getLong() + (3602220L*24L*23L));
             }
-            else if (vertex.hasProperty(founded)){
-              vertex.setFrom(vertex.getPropertyValue(founded).getLong());
-              vertex.setTo(vertex.getPropertyValue(founded).getLong() + (1053108L *24L*14L));
+            else if (vertex.hasProperty(creationDate)){
+              vertex.setFrom(vertex.getPropertyValue(creationDate).getLong());
+              vertex.setTo(vertex.getPropertyValue(creationDate).getLong() + (1053108L *24L*14L));
             }
             else {
               vertex.setFrom(0L);
@@ -71,16 +71,16 @@ public class WriteGraphToHBase {
         }, new TransformationFunction<Edge>() {
           public Edge apply(Edge edge, Edge el1) {
 
-            String since = "since";
-            String dateOfEntry = "dateOfEntry";
+            String joinDate = "joinDate";
+            String creationDate = "creationDate";
 
-            if (edge.hasProperty(since)){
-              edge.setFrom(edge.getPropertyValue(since).getLong());
-              edge.setTo(edge.getPropertyValue(since).getLong() + (3612345L*24L*3L));
+            if (edge.hasProperty(joinDate)){
+              edge.setFrom(edge.getPropertyValue(joinDate).getLong());
+              edge.setTo(edge.getPropertyValue(joinDate).getLong() + (3612345L*24L*3L));
             }
-            else if (edge.hasProperty(dateOfEntry)){
-              edge.setFrom(edge.getPropertyValue(dateOfEntry).getLong());
-              edge.setTo(edge.getPropertyValue(dateOfEntry).getLong() + (3654321L*24L*7L));
+            else if (edge.hasProperty(creationDate)){
+              edge.setFrom(edge.getPropertyValue(creationDate).getLong());
+              edge.setTo(edge.getPropertyValue(creationDate).getLong() + (3654321L*24L*7L));
             }
             else {
               edge.setFrom(0L);
