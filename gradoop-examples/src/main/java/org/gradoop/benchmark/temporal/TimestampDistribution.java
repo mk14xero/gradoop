@@ -40,19 +40,35 @@ public class TimestampDistribution {
     AggregateOperator<Tuple2<Long, Integer>> vertexsum = graph.getVertices().map(new MapFunction<Vertex, Tuple2<Long, Integer>>() {
       @Override
       public Tuple2<Long, Integer> map(Vertex vertex) throws Exception {
-        return new Tuple2<>(vertex.getFrom() / 100000000, 1);
+        return new Tuple2<>(vertex.getFrom() / 1000000000, 1);
       }
     }).groupBy(0).sum(1);
 
     AggregateOperator<Tuple2<Long, Integer>> edgesum = graph.getEdges().map(new MapFunction<Edge, Tuple2<Long, Integer>>() {
       @Override
       public Tuple2<Long, Integer> map(Edge edge) throws Exception {
-        return new Tuple2<>(edge.getFrom() / 100000000, 1);
+        return new Tuple2<>(edge.getFrom() / 1000000000, 1);
       }
     }).groupBy(0).sum(1);
 
-    vertexsum.writeAsCsv("/home/mariakoemmpel/Desktop/vertex_distribution.csv");
-    edgesum.writeAsCsv("/home/mariakoemmpel/Desktop/edge_distribution.csv");
+    AggregateOperator<Tuple2<Long, Integer>> vertexsum_to = graph.getVertices().map(new MapFunction<Vertex, Tuple2<Long, Integer>>() {
+      @Override
+      public Tuple2<Long, Integer> map(Vertex vertex) throws Exception {
+        return new Tuple2<>(vertex.getTo() / 1000000000, 1);
+      }
+    }).groupBy(0).sum(1);
+
+    AggregateOperator<Tuple2<Long, Integer>> edgesum_to = graph.getEdges().map(new MapFunction<Edge, Tuple2<Long, Integer>>() {
+      @Override
+      public Tuple2<Long, Integer> map(Edge edge) throws Exception {
+        return new Tuple2<>(edge.getTo() / 1000000000, 1);
+      }
+    }).groupBy(0).sum(1);
+
+    vertexsum.writeAsCsv("/home/mariakoemmpel/Desktop/vertexsum.csv");
+    edgesum.writeAsCsv("/home/mariakoemmpel/Desktop/edgesum.csv");
+    vertexsum_to.writeAsCsv("/home/mariakoemmpel/Desktop/vertexsum_to.csv");
+    edgesum_to.writeAsCsv("/home/mariakoemmpel/Desktop/edgesum_to.csv");
     env.execute();
 
   }

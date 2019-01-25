@@ -3,11 +3,17 @@ package org.gradoop.benchmark.temporal;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.flink.api.common.ProgramDescription;
+import org.apache.flink.api.common.functions.FilterFunction;
 import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.gradoop.benchmark.temporal.TPGMSubgraphOperators.*;
+import org.gradoop.common.model.impl.pojo.Edge;
+import org.gradoop.common.model.impl.pojo.Vertex;
 import org.gradoop.examples.AbstractRunner;
 import org.gradoop.flink.io.api.DataSink;
+import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSink;
+import org.gradoop.flink.io.impl.csv.CSVDataSource;
 import org.gradoop.flink.model.impl.epgm.LogicalGraph;
 import org.gradoop.flink.util.GradoopFlinkConfig;
 import org.gradoop.storage.config.GradoopHBaseConfig;
@@ -20,8 +26,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
-
-public class EdgeCount extends AbstractRunner implements ProgramDescription {
+public class TPGMSubgraphBenchmark extends AbstractRunner implements ProgramDescription {
   /**
    * Option to declare prefix
    */
@@ -31,9 +36,9 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
    */
   private static final String OPTION_OUTPUT_PATH = "o";
   /**
-   * Option to declare output path to statistics csv file
+   * Option to declare output path to statistics job results
    */
-  private static final String OPTION_CSV_PATH = "c";
+  private static final String OPTION_CSV_PATH = "j";
   /**
    * Use from timestamp
    */
@@ -47,11 +52,6 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
    * Use querytype (asof, between, fromto, containedin, validduring, all, createdin, deletedin)
    */
   private static final String OPTION_QUERYTYPE = "q";
-
-  /**
-   * Use filter flag (hbase filter, subgraphs)
-   */
-  private static final String OPTION_FILTER = "r";
 
 
   /**
@@ -79,10 +79,7 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
    * Used csv path
    */
   private static String CSV_PATH;
-  /**
-   * Used filter option
-   */
-  private static boolean FILTER;
+
 
   static {
     OPTIONS.addOption(OPTION_INPUT_PATH, "prefix", true,
@@ -97,8 +94,6 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
         "To timestamp.");
     OPTIONS.addOption(OPTION_QUERYTYPE, "querytype", true,
         "Used query type.");
-    OPTIONS.addOption(OPTION_FILTER, "filter", false,
-        "Used filter");
   }
 
   /**
@@ -108,7 +103,7 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
    * @throws Exception in case of Error
    */
   public static void main(String[] args) throws Exception {
-    CommandLine cmd = parseArguments(args, EdgeCount.class.getName());
+    CommandLine cmd = parseArguments(args, TPGMPushDownBenchmark.class.getName());
 
     if (cmd == null) {
       System.exit(1);
@@ -129,17 +124,49 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
         .createOrOpenEPGMStore(HBaseConfiguration.create(), GradoopHBaseConfig.getDefaultConfig(),
             INPUT_PATH + ".");
 
-      //read graph from HBase
+    //read graph from HBase
     HBaseDataSource hBaseSource = new HBaseDataSource(graphStore, conf);
 
-    // restrict whole temporal graph by different filter options
-    if (FILTER) {
-      hBaseSource.setTemps(Long.valueOf(FROM_TS), Long.valueOf(TO_TS), querytypeDecision());
-    }
-
     logGraph = hBaseSource.getLogicalGraph();
-    long countedges = logGraph.getEdges().count();
 
+    switch (QUERYTYPE) {
+      case "asof":
+        FilterFunction<Vertex> vfilterASOF = new FilterASOF<>(Long.valueOf(FROM_TS));
+        FilterFunction<Edge> efilterASOF = new FilterASOF<>(Long.valueOf(FROM_TS));
+        logGraph = logGraph.subgraph(vfilterASOF, efilterASOF);
+        break;
+      case "fromto":
+        FilterFunction<Vertex> vfilterFROM = new FilterFROM<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        FilterFunction<Edge> efilterFROM = new FilterFROM<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        logGraph = logGraph.subgraph(vfilterFROM, efilterFROM);
+        break;
+      case "between":
+        FilterFunction<Vertex> vfilterBETWEEN = new FilterBETWEEN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        FilterFunction<Edge> efilterBETWEEN = new FilterBETWEEN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        logGraph = logGraph.subgraph(vfilterBETWEEN, efilterBETWEEN);
+        break;
+      case "containedin":
+        FilterFunction<Vertex> vfilterCONTAINEDIN = new FilterCONTAINEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        FilterFunction<Edge> efilterCONTAINEDIN = new FilterCONTAINEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        logGraph = logGraph.subgraph(vfilterCONTAINEDIN, efilterCONTAINEDIN);
+        break;
+      case "validduring":
+        FilterFunction<Vertex> vfilterVALIDDURING = new FilterVALIDDURING<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        FilterFunction<Edge> efilterVALIDDURING = new FilterVALIDDURING<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        logGraph = logGraph.subgraph(vfilterVALIDDURING, efilterVALIDDURING);
+        break;
+      case "createdin":
+        FilterFunction<Vertex> vfilterCREATEDIN = new FilterCREATEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        FilterFunction<Edge> efilterCREATEDIN = new FilterCREATEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        logGraph = logGraph.subgraph(vfilterCREATEDIN, efilterCREATEDIN);
+        break;
+      case "deletedin":
+        FilterFunction<Vertex> vfilterDELETEDIN = new FilterDELETEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        FilterFunction<Edge> efilterDELETEDIN = new FilterDELETEDIN<>(Long.valueOf(FROM_TS), Long.valueOf(TO_TS));
+        logGraph =  logGraph.subgraph(vfilterDELETEDIN, efilterDELETEDIN);
+        break;
+      default:
+    }
 
     //write graph to csv data sink
     DataSink sink = new CSVDataSink(OUTPUT_PATH, conf);
@@ -148,7 +175,11 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
 
     // execute and write job statistics
     env.execute();
-    writeCSV(env, countedges);
+
+    int parallelism = env.getParallelism();
+    long runtime = env.getLastJobExecutionResult().getNetRuntime(TimeUnit.SECONDS);
+
+    writeCSV(parallelism, runtime);
   }
 
   /**
@@ -180,62 +211,26 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
     QUERYTYPE    = cmd.getOptionValue(OPTION_QUERYTYPE);
     FROM_TS      = cmd.getOptionValue(OPTION_FROM_TIMESTAMP);
     TO_TS        = cmd.getOptionValue(OPTION_TO_TIMESTAMP);
-    FILTER       = cmd.hasOption(OPTION_FILTER);
-  }
-
-  /**
-   * reads and transforms the given querytype argument from command line into hbase querytype
-   *
-   */
-  private static HBaseDataSource.Querytype querytypeDecision() {
-    HBaseDataSource.Querytype chosenType;
-    switch (QUERYTYPE) {
-      case "asof":
-        chosenType = HBaseDataSource.Querytype.AS_OF;
-        break;
-      case "between":
-        chosenType = HBaseDataSource.Querytype.BETWEEN_IN;
-        break;
-      case "fromto":
-        chosenType = HBaseDataSource.Querytype.FROM_TO;
-        break;
-      case "validduring":
-        chosenType = HBaseDataSource.Querytype.VALID_DURING;
-        break;
-      case "containedin":
-        chosenType = HBaseDataSource.Querytype.CONTAINED_IN;
-        break;
-      case "createdin":
-        chosenType = HBaseDataSource.Querytype.CREATED_IN;
-        break;
-      case "deletedin":
-        chosenType = HBaseDataSource.Querytype.DELETED_IN;
-        break;
-      default:
-        chosenType = HBaseDataSource.Querytype.ALL;
-        break;
-    }
-    return chosenType;
   }
 
   // generation of csv file with all relevant measurements
-  private static void writeCSV(ExecutionEnvironment env, long countedges) throws IOException {
+  private static void writeCSV(int parallelism, long runtime) throws IOException {
 
     String head = String.format("%s|%s|%s|%s|%s|%s%n",
-        "SubsetFromHBase",
-        "Querytype",
         "Dataset",
-        "Count",
+        "Parallelism",
+        "Querytype",
         "From",
-        "To");
+        "To",
+        "Runtime(s)");
 
     String tail = String.format("%s|%s|%s|%s|%s|%s%n",
-        FILTER,
-        QUERYTYPE,
         INPUT_PATH,
-        countedges,
+        parallelism,
+        QUERYTYPE,
         FROM_TS,
-        TO_TS);
+        TO_TS,
+        runtime);
 
     File f = new File(CSV_PATH);
     if (f.exists() && !f.isDirectory()) {
@@ -252,6 +247,6 @@ public class EdgeCount extends AbstractRunner implements ProgramDescription {
    * {@inheritDoc}
    */
   @Override
-  public String getDescription() { return EdgeCount.class.getName();}
+  public String getDescription() { return TPGMPushDownBenchmark.class.getName();}
 
 }

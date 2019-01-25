@@ -7,7 +7,9 @@ import org.apache.flink.api.java.ExecutionEnvironment;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.gradoop.examples.AbstractRunner;
 import org.gradoop.flink.io.api.DataSink;
+import org.gradoop.flink.io.api.DataSource;
 import org.gradoop.flink.io.impl.csv.CSVDataSink;
+import org.gradoop.flink.io.impl.csv.CSVDataSource;
 import org.gradoop.flink.model.impl.epgm.LogicalGraph;
 import org.gradoop.flink.util.GradoopFlinkConfig;
 import org.gradoop.storage.config.GradoopHBaseConfig;
@@ -21,7 +23,7 @@ import java.io.PrintWriter;
 import java.util.concurrent.TimeUnit;
 
 
-public class VertexCount extends AbstractRunner implements ProgramDescription {
+public class TPGMPushDownBenchmark extends AbstractRunner implements ProgramDescription {
   /**
    * Option to declare prefix
    */
@@ -31,9 +33,9 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
    */
   private static final String OPTION_OUTPUT_PATH = "o";
   /**
-   * Option to declare output path to statistics csv file
+   * Option to declare output path to statistics job results
    */
-  private static final String OPTION_CSV_PATH = "c";
+  private static final String OPTION_CSV_PATH = "j";
   /**
    * Use from timestamp
    */
@@ -47,11 +49,6 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
    * Use querytype (asof, between, fromto, containedin, validduring, all, createdin, deletedin)
    */
   private static final String OPTION_QUERYTYPE = "q";
-
-  /**
-   * Use filter flag (hbase filter, subgraphs)
-   */
-  private static final String OPTION_FILTER = "r";
 
 
   /**
@@ -79,10 +76,7 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
    * Used csv path
    */
   private static String CSV_PATH;
-  /**
-   * Used filter option
-   */
-  private static boolean FILTER;
+
 
   static {
     OPTIONS.addOption(OPTION_INPUT_PATH, "prefix", true,
@@ -97,8 +91,6 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
         "To timestamp.");
     OPTIONS.addOption(OPTION_QUERYTYPE, "querytype", true,
         "Used query type.");
-    OPTIONS.addOption(OPTION_FILTER, "filter", false,
-        "Used filter");
   }
 
   /**
@@ -108,7 +100,7 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
    * @throws Exception in case of Error
    */
   public static void main(String[] args) throws Exception {
-    CommandLine cmd = parseArguments(args, VertexCount.class.getName());
+    CommandLine cmd = parseArguments(args, TPGMPushDownBenchmark.class.getName());
 
     if (cmd == null) {
       System.exit(1);
@@ -129,26 +121,24 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
         .createOrOpenEPGMStore(HBaseConfiguration.create(), GradoopHBaseConfig.getDefaultConfig(),
             INPUT_PATH + ".");
 
-      //read graph from HBase
+    //read graph from HBase
     HBaseDataSource hBaseSource = new HBaseDataSource(graphStore, conf);
 
     // restrict whole temporal graph by different filter options
-    if (FILTER) {
-      hBaseSource.setTemps(Long.valueOf(FROM_TS), Long.valueOf(TO_TS), querytypeDecision());
-    }
-
+    hBaseSource.setTemps(Long.valueOf(FROM_TS), Long.valueOf(TO_TS), querytypeDecision());
     logGraph = hBaseSource.getLogicalGraph();
-    long countvertices =  logGraph.getVertices().count();
-
 
     //write graph to csv data sink
     DataSink sink = new CSVDataSink(OUTPUT_PATH, conf);
     sink.write(logGraph);
 
-
     // execute and write job statistics
     env.execute();
-    writeCSV(env, countvertices);
+
+    int parallelism = env.getParallelism();
+    long runtime = env.getLastJobExecutionResult().getNetRuntime(TimeUnit.SECONDS);
+
+    writeCSV(parallelism, runtime);
   }
 
   /**
@@ -180,7 +170,6 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
     QUERYTYPE    = cmd.getOptionValue(OPTION_QUERYTYPE);
     FROM_TS      = cmd.getOptionValue(OPTION_FROM_TIMESTAMP);
     TO_TS        = cmd.getOptionValue(OPTION_TO_TIMESTAMP);
-    FILTER       = cmd.hasOption(OPTION_FILTER);
   }
 
   /**
@@ -219,23 +208,23 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
   }
 
   // generation of csv file with all relevant measurements
-  private static void writeCSV(ExecutionEnvironment env, long countvertices) throws IOException {
+  private static void writeCSV(int parallelism, long runtime) throws IOException {
 
     String head = String.format("%s|%s|%s|%s|%s|%s%n",
-        "SubsetFromHBase",
-        "Querytype",
         "Dataset",
-        "Count",
+        "Parallelism",
+        "Querytype",
         "From",
-        "To");
+        "To",
+        "Runtime(s)");
 
     String tail = String.format("%s|%s|%s|%s|%s|%s%n",
-        FILTER,
-        QUERYTYPE,
         INPUT_PATH,
-        countvertices,
+        parallelism,
+        QUERYTYPE,
         FROM_TS,
-        TO_TS);
+        TO_TS,
+        runtime);
 
     File f = new File(CSV_PATH);
     if (f.exists() && !f.isDirectory()) {
@@ -252,6 +241,6 @@ public class VertexCount extends AbstractRunner implements ProgramDescription {
    * {@inheritDoc}
    */
   @Override
-  public String getDescription() { return VertexCount.class.getName();}
+  public String getDescription() { return TPGMPushDownBenchmark.class.getName();}
 
 }

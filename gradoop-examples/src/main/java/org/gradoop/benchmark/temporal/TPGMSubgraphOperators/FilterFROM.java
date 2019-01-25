@@ -1,4 +1,4 @@
-package org.gradoop.benchmark.temporal.SubgraphOperators;
+package org.gradoop.benchmark.temporal.TPGMSubgraphOperators;
 
 import org.apache.flink.api.common.functions.FilterFunction;
 import org.gradoop.common.model.api.entities.EPGMElement;
