@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,13 +60,4 @@ public final class HBaseConstants {
    * Column identifier for target vertex identifier.
    */
   public static final String COL_TARGET = "t";
-    /**
-     * Column family for offset.
-     */
-  public static final String CF_TS = "timestamp";
-
-  public static final String COL_TS_FROM = "from";
-
-  public static final String COL_TS_TO = "to";
-
 }

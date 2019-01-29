@@ -27,17 +27,17 @@ public class WriteEPGMGraphToHBase {
     ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
     GradoopFlinkConfig conf = GradoopFlinkConfig.createConfig(env);
 
-      DataSource source = new CSVDataSource(args[0], conf);
-      LogicalGraph graph = source.getLogicalGraph();
-      graph = transformGraph(graph);
+    DataSource source = new CSVDataSource(args[0], conf);
+    LogicalGraph graph = source.getLogicalGraph();
+    graph = transformGraph(graph);
 
 
-      // write graph to HBase
-      HBaseEPGMStore graphStore = HBaseEPGMStoreFactory.createOrOpenEPGMStore(HBaseConfiguration.create(), GradoopHBaseConfig.getDefaultConfig(), args[1] + ".");
-      DataSink hBaseSink = new HBaseDataSink(graphStore, conf);
-      hBaseSink.write(graph);
+    // write graph to HBase
+    HBaseEPGMStore graphStore = HBaseEPGMStoreFactory.createOrOpenEPGMStore(HBaseConfiguration.create(), GradoopHBaseConfig.getDefaultConfig(), args[1] + ".");
+    DataSink hBaseSink = new HBaseDataSink(graphStore, conf);
+    hBaseSink.write(graph);
 
-      env.execute();
+    env.execute();
   }
 
   /**

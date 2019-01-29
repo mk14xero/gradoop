@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.gradoop.storage.impl.hbase;
 
 import org.gradoop.storage.impl.hbase.io.HBaseDataSinkSourceTest;
-import org.gradoop.storage.impl.hbase.io.HBaseTempTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
@@ -29,11 +28,11 @@ import org.junit.runners.Suite;
  */
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-  HBaseTempTest.class,
-  HBaseDataSinkSourceTest.class,
-  HBaseGraphStoreTest.class
-
-
+  HBaseEPGMStoreTest.class,
+  HBaseDefaultGraphStoreTest.class,
+  HBaseSplitRegionGraphStoreTest.class,
+  HBaseSpreadingByteGraphStoreTest.class,
+  HBaseDataSinkSourceTest.class
 })
 public class HBaseTestSuite {
 

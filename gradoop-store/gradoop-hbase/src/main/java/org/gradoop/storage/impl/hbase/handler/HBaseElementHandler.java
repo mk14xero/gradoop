@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.gradoop.storage.impl.hbase.handler;
 
-import javassist.bytecode.ByteArray;
 import org.apache.hadoop.hbase.client.Put;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.util.Bytes;
@@ -26,10 +25,12 @@ import org.gradoop.common.model.impl.properties.Property;
 import org.gradoop.common.model.impl.properties.PropertyValueUtils;
 import org.gradoop.storage.impl.hbase.api.ElementHandler;
 import org.gradoop.storage.impl.hbase.constants.HBaseConstants;
-import scala.util.control.Exception;
+import org.gradoop.storage.utils.RowKeyDistributor;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
+import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -59,49 +60,34 @@ public abstract class HBaseElementHandler implements ElementHandler {
   private static final byte[] CF_PROPERTY_VALUE_BYTES =
     Bytes.toBytes(HBaseConstants.CF_PROPERTY_VALUE);
 
-  private static final byte[] CF_TIMESTAMP_BYTES =
-            Bytes.toBytes(HBaseConstants.CF_TS);
+  /**
+   * Flag to identify if a pre-splitting of HBase regions should be used
+   */
+  private boolean usePreSplitRegions;
 
-  private static final byte[] COL_TS_FROM_BYTES = Bytes.toBytes(HBaseConstants.COL_TS_FROM);
-
-  private static final byte[] COL_TS_TO_BYTES = Bytes.toBytes(HBaseConstants.COL_TS_TO);
+  /**
+   * Flag to identify if a spreading byte should be used as prefix of each row key
+   */
+  private boolean useSpreadingByte;
 
   /**
    * {@inheritDoc}
+   * Used for writing the rowKey to HBase.
    */
-
   @Override
-  public byte[] getRowKey(final GradoopId elementId){
-    return getRowKey(elementId, Long.MIN_VALUE);
+  public byte[] getRowKey(@Nonnull final GradoopId elementId) {
+    return useSpreadingByte ?
+      RowKeyDistributor.getInstance().getDistributedKey(elementId.toByteArray()) :
+      elementId.toByteArray();
   }
 
   @Override
-  public byte[] getRowKey(final GradoopId elementId, long from){
-
-    String underscoreString = "_";
-    byte[] gradoopId = elementId.toByteArray(); // 12 Byte
-    byte[] underscore = underscoreString.getBytes(Charset.defaultCharset()); // 1 Byte
-    byte[] fromBytes = ByteBuffer.allocate(Long.BYTES).putLong(from).array(); // 8 Byte
-
-    return ByteBuffer.allocate(fromBytes.length + underscore.length + gradoopId.length)
-        .put(fromBytes)
-        .put(underscore)
-        .put(gradoopId)
-        .array();
-  }
-
-  /**
-   * {@inheritDoc}
-   */
-  @Override
-  public GradoopId getId(final byte[] rowKey) {
-    if (rowKey == null) {
-      throw new IllegalArgumentException("rowKey must not be null");
+  public GradoopId readId(@Nonnull final Result res) {
+    if (useSpreadingByte) {
+      return GradoopId.fromByteArray(RowKeyDistributor.getInstance().getOriginalKey(res.getRow()));
+    } else {
+      return GradoopId.fromByteArray(res.getRow());
     }
-        byte[] gradoopId = new byte[12];
-        System.arraycopy(rowKey,9, gradoopId, 0, 12);
-
-        return GradoopId.fromByteArray(gradoopId);
   }
 
   /**
@@ -138,46 +124,12 @@ public abstract class HBaseElementHandler implements ElementHandler {
     return put;
   }
 
-
-  @Override
-  public Put writeFrom(final Put put, final EPGMElement entity) {
-      return (entity.getFrom() == null) ? put :
-      put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES, Bytes.toBytes(entity.getFrom()));
-  }
-
-  @Override
-  public Put writeTo(final Put put, final EPGMElement entity) {
-      return (entity.getTo() == null) ? put :
-              put.addColumn(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES, Bytes.toBytes(entity.getTo()));
-  }
-
   /**
    * {@inheritDoc}
    */
   @Override
   public String readLabel(final Result res) {
     return Bytes.toString(res.getValue(CF_META_BYTES, COL_LABEL_BYTES));
-  }
-
-
-  @Override
-  public Long readFrom(final Result res) {
-    if (res.getValue(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES) == null) {
-      return Long.MIN_VALUE;
-    }
-    else {
-      return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_FROM_BYTES));
-    }
-  }
-
-  @Override
-  public Long readTo(final Result res) {
-    if (res.getValue(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES) == null) {
-      return Long.MAX_VALUE;
-    }
-    else {
-      return Bytes.toLong(res.getValue(CF_TIMESTAMP_BYTES, COL_TS_TO_BYTES));
-    }
   }
 
   /**
@@ -203,17 +155,33 @@ public abstract class HBaseElementHandler implements ElementHandler {
     return properties;
   }
 
-  /**
-   * Deserializes a gradoop id from HBase row key.
-   *
-   * @param res HBase row
-   * @return gradoop id
-   */
-  GradoopId readId(Result res) {
+  @Override
+  public boolean isPreSplitRegions() {
+    return this.usePreSplitRegions;
+  }
 
-    byte[] gradoopId = new byte[12];
-    System.arraycopy(res.getRow(),9, gradoopId, 0, 12);
+  @Override
+  public void setPreSplitRegions(boolean usePreSplitRegions) {
+    this.usePreSplitRegions = usePreSplitRegions;
+  }
 
-    return GradoopId.fromByteArray(gradoopId);
+  @Override
+  public boolean isSpreadingByteUsed() {
+    return this.useSpreadingByte;
+  }
+
+  @Override
+  public void setSpreadingByteUsage(boolean useSpreadingByte) {
+    this.useSpreadingByte = useSpreadingByte;
+  }
+
+  @Override
+  public List<byte[]> getPossibleRowKeys(@Nonnull final GradoopId elementId) {
+    List<byte[]> possibleKeys = new ArrayList<>();
+    final byte[][] allDistributedKeys = RowKeyDistributor.getInstance()
+      .getAllDistributedKeys(elementId.toByteArray());
+
+    Collections.addAll(possibleKeys, allDistributedKeys);
+    return possibleKeys;
   }
 }

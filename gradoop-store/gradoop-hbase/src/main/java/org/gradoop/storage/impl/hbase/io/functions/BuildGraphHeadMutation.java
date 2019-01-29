@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -67,16 +67,10 @@ public class BuildGraphHeadMutation extends
   /**
    * {@inheritDoc}
    */
-
+  @Override
   public Tuple2<GradoopId, Mutation> map(GraphHead graphHead) throws Exception {
     GradoopId key = graphHead.getId();
-    Put put;
-    if (graphHead.getFrom() == null){
-      put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
-    }
-    else {
-      put = new Put(graphHeadHandler.getRowKey(graphHead.getId(), graphHead.getFrom()));
-    }
+    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
     put = graphHeadHandler.writeGraphHead(put, graphHead);
 
     reuseTuple.f0 = key;

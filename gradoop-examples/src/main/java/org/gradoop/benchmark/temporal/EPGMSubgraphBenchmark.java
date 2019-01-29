@@ -113,7 +113,7 @@ public class EPGMSubgraphBenchmark extends AbstractRunner implements ProgramDesc
         .createOrOpenEPGMStore(HBaseConfiguration.create(), GradoopHBaseConfig.getDefaultConfig(),
             INPUT_PATH + ".");
 
-      //read graph from HBase
+    //read graph from HBase
     HBaseDataSource hBaseSource = new HBaseDataSource(graphStore, conf);
 
     logGraph = hBaseSource.getLogicalGraph();
@@ -131,16 +131,7 @@ public class EPGMSubgraphBenchmark extends AbstractRunner implements ProgramDesc
     int parallelism = env.getParallelism();
     long runtime = env.getLastJobExecutionResult().getNetRuntime(TimeUnit.SECONDS);
 
-
-    // read written data again
-    DataSource source = new CSVDataSource(OUTPUT_PATH, conf);
-    LogicalGraph result = source.getLogicalGraph();
-
-    long vertexCount = result.getVertices().count();
-
-    long edgeCount = result.getEdges().count();
-
-    writeCSV(parallelism, runtime, vertexCount, edgeCount);
+    writeCSV(parallelism, runtime);
   }
 
   /**
@@ -181,26 +172,22 @@ public class EPGMSubgraphBenchmark extends AbstractRunner implements ProgramDesc
   }
 
   // generation of csv file with all relevant measurements
-  private static void writeCSV(int parallelism, long runtime, long vertexCount, long edgeCount) throws IOException {
+  private static void writeCSV(int parallelism, long runtime) throws IOException {
 
-    String head = String.format("%s|%s|%s|%s|%s|%s|%s|%s%n",
-        "Querytype",
+    String head = String.format("%s|%s|%s|%s|%s|%s%n",
         "Dataset",
         "Parallelism",
+        "Querytype",
         "From",
         "To",
-        "vertexCount",
-        "edgeCount",
         "Runtime(s)");
 
-    String tail = String.format("%s|%s|%s|%s|%s|%s|%s|%s%n",
-        QUERYTYPE,
+    String tail = String.format("%s|%s|%s|%s|%s|%s%n",
         INPUT_PATH,
         parallelism,
+        QUERYTYPE,
         FROM,
         TO,
-        vertexCount,
-        edgeCount,
         runtime);
 
     File f = new File(CSV_PATH);

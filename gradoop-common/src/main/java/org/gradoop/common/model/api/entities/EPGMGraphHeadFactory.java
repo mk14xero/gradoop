@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,8 +76,4 @@ public interface EPGMGraphHeadFactory<G extends EPGMGraphHead>
    * @return graph data
    */
   G initGraphHead(GradoopId id, String label, Properties properties);
-
-  G createGraphHead(String label, Properties properties, Long from, Long to);
-
-  G initGraphHead(GradoopId id, String label, Properties properties, Long from, Long to);
 }

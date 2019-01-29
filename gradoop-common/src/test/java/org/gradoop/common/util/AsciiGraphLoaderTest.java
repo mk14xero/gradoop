@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -70,7 +70,7 @@ public class AsciiGraphLoaderTest {
   @Test
   public void testGetGraphHeadByVariable() throws Exception {
     AsciiGraphLoader<GraphHead, Vertex, Edge> asciiGraphLoader =
-      AsciiGraphLoader.fromString("g[()]h[()]", config);
+      AsciiGraphLoader.fromString("g[()];h[()]", config);
 
     validateCollections(asciiGraphLoader, 2, 2, 0);
     validateCaches(asciiGraphLoader, 2, 0, 0);

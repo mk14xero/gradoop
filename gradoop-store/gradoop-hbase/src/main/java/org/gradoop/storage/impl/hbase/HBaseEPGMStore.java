@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,6 +49,8 @@ import org.gradoop.storage.impl.hbase.iterator.HBaseVertexIterator;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Default HBase graph store that handles reading and writing vertices and
@@ -89,7 +91,6 @@ public class HBaseEPGMStore implements
    */
   private volatile boolean autoFlush;
 
-
   /**
    * Creates a HBaseEPGMStore based on the given parameters. All parameters
    * are mandatory and must not be {@code null}.
@@ -112,7 +113,6 @@ public class HBaseEPGMStore implements
     this.edgeTable = Preconditions.checkNotNull(edgeTable);
     this.config = Preconditions.checkNotNull(config);
     this.admin = Preconditions.checkNotNull(admin);
-
   }
 
   /**
@@ -152,13 +152,9 @@ public class HBaseEPGMStore implements
    */
   @Override
   public void writeGraphHead(@Nonnull final EPGMGraphHead graphHead) throws IOException {
-    Put put;
     GraphHeadHandler graphHeadHandler = config.getGraphHeadHandler();
     // graph id
-    if (graphHead.getFrom() == null)
-      put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
-    else
-      put = new Put(graphHeadHandler.getRowKey(graphHead.getId()), graphHead.getFrom());
+    Put put = new Put(graphHeadHandler.getRowKey(graphHead.getId()));
     // write graph to Put
     put = graphHeadHandler.writeGraphHead(put, graphHead);
     // write to table
@@ -173,13 +169,9 @@ public class HBaseEPGMStore implements
    */
   @Override
   public void writeVertex(@Nonnull final EPGMVertex vertexData) throws IOException {
-    Put put;
     VertexHandler vertexHandler = config.getVertexHandler();
     // vertex id
-    if (vertexData.getFrom() == null)
-      put = new Put(vertexHandler.getRowKey(vertexData.getId()));
-    else
-      put = new Put(vertexHandler.getRowKey(vertexData.getId(), vertexData.getFrom()));
+    Put put = new Put(vertexHandler.getRowKey(vertexData.getId()));
     // write vertex data to Put
     put = vertexHandler.writeVertex(put, vertexData);
     // write to table
@@ -194,14 +186,10 @@ public class HBaseEPGMStore implements
    */
   @Override
   public void writeEdge(@Nonnull final EPGMEdge edgeData) throws IOException {
-    Put put;
     // write to table
     EdgeHandler edgeHandler = config.getEdgeHandler();
     // edge id
-    if (edgeData.getFrom() == null)
-    put = new Put(edgeHandler.getRowKey(edgeData.getId()));
-    else
-    put = new Put(edgeHandler.getRowKey(edgeData.getId(), edgeData.getFrom()));
+    Put put = new Put(edgeHandler.getRowKey(edgeData.getId()));
     // write edge data to Put
     put = edgeHandler.writeEdge(put, edgeData);
     edgeTable.put(put);
@@ -217,10 +205,21 @@ public class HBaseEPGMStore implements
   public GraphHead readGraph(@Nonnull final GradoopId graphId) throws IOException {
     GraphHead graphData = null;
     GraphHeadHandler graphHeadHandler = config.getGraphHeadHandler();
-    byte[] rowKey = graphHeadHandler.getRowKey(graphId);
-    Result res = graphHeadTable.get(new Get(rowKey));
-    if (!res.isEmpty()) {
-      graphData = graphHeadHandler.readGraphHead(res);
+    List<Get> getList = new ArrayList<>();
+
+    if (graphHeadHandler.isSpreadingByteUsed()) {
+      for (byte[] rowKey : graphHeadHandler.getPossibleRowKeys(graphId)) {
+        getList.add(new Get(rowKey));
+      }
+    } else {
+      getList.add(new Get(graphId.toByteArray()));
+    }
+    final Result[] results = graphHeadTable.get(getList);
+    for (Result res : results) {
+      if (!res.isEmpty()) {
+        graphData = graphHeadHandler.readGraphHead(res);
+        break;
+      }
     }
     return graphData;
   }
@@ -232,26 +231,49 @@ public class HBaseEPGMStore implements
   public Vertex readVertex(@Nonnull final GradoopId vertexId) throws IOException {
     Vertex vertexData = null;
     VertexHandler vertexHandler = config.getVertexHandler();
-    byte[] rowKey = vertexHandler.getRowKey(vertexId);
-    Result res = vertexTable.get(new Get(rowKey));
-    if (!res.isEmpty()) {
-      vertexData = vertexHandler.readVertex(res);
+    List<Get> getList = new ArrayList<>();
+
+    if (vertexHandler.isSpreadingByteUsed()) {
+      for (byte[] rowKey : vertexHandler.getPossibleRowKeys(vertexId)) {
+        getList.add(new Get(rowKey));
+      }
+    } else {
+      getList.add(new Get(vertexHandler.getRowKey(vertexId)));
     }
+
+    final Result[] results = vertexTable.get(getList);
+    for (Result res : results) {
+      if (!res.isEmpty()) {
+        vertexData = vertexHandler.readVertex(res);
+        break;
+      }
+    }
+
     return vertexData;
   }
 
-  /**
-   * {@inheritDoc}
-   */
   @Override
   public Edge readEdge(@Nonnull final GradoopId edgeId) throws IOException {
     Edge edgeData = null;
     EdgeHandler edgeHandler = config.getEdgeHandler();
-    byte[] rowKey = edgeHandler.getRowKey(edgeId);
-    Result res = edgeTable.get(new Get(rowKey));
-    if (!res.isEmpty()) {
-      edgeData = edgeHandler.readEdge(res);
+    List<Get> getList = new ArrayList<>();
+
+    if (edgeHandler.isSpreadingByteUsed()) {
+      for (byte[] rowKey : edgeHandler.getPossibleRowKeys(edgeId)) {
+        getList.add(new Get(rowKey));
+      }
+    } else {
+      getList.add(new Get(edgeHandler.getRowKey(edgeId)));
     }
+
+    final Result[] results = edgeTable.get(getList);
+    for (Result res : results) {
+      if (!res.isEmpty()) {
+        edgeData = edgeHandler.readEdge(res);
+        break;
+      }
+    }
+
     return edgeData;
   }
 
@@ -269,7 +291,7 @@ public class HBaseEPGMStore implements
     scan.setMaxVersions(1);
 
     if (query != null) {
-      attachFilter(query, scan);
+      attachFilter(query, scan, config.getGraphHeadHandler().isSpreadingByteUsed());
     }
 
     return new HBaseGraphIterator(graphHeadTable.getScanner(scan), config.getGraphHeadHandler());
@@ -289,7 +311,7 @@ public class HBaseEPGMStore implements
     scan.setMaxVersions(1);
 
     if (query != null) {
-      attachFilter(query, scan);
+      attachFilter(query, scan, config.getVertexHandler().isSpreadingByteUsed());
     }
 
     return new HBaseVertexIterator(vertexTable.getScanner(scan), config.getVertexHandler());
@@ -309,7 +331,7 @@ public class HBaseEPGMStore implements
     scan.setMaxVersions(1);
 
     if (query != null) {
-      attachFilter(query, scan);
+      attachFilter(query, scan, config.getEdgeHandler().isSpreadingByteUsed());
     }
 
     return new HBaseEdgeIterator(edgeTable.getScanner(scan), config.getEdgeHandler());
@@ -343,7 +365,12 @@ public class HBaseEPGMStore implements
     graphHeadTable.close();
   }
 
-  public void drop() throws IOException {
+  /**
+   * First disable, then drop all three tables.
+   *
+   * @throws IOException on error
+   */
+  public void dropTables() throws IOException {
     admin.disableTable(vertexTable.getName());
     admin.disableTable(edgeTable.getName());
     admin.disableTable(graphHeadTable.getName());
@@ -358,16 +385,19 @@ public class HBaseEPGMStore implements
    *
    * @param query the query that represents a filter
    * @param scan the HBase scan instance on which the filter will be applied
+   * @param isSpreadingByteUsed indicates whether a spreading byte is used as row key prefix or not
    * @param <T> the type of the EPGM element
    */
   private <T extends EPGMElement> void attachFilter(
     @Nonnull ElementQuery<HBaseElementFilter<T>> query,
-    @Nonnull Scan scan
-  ) {
+    @Nonnull Scan scan,
+    boolean isSpreadingByteUsed) {
+
     FilterList conjunctFilters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
 
     if (query.getQueryRanges() != null && !query.getQueryRanges().isEmpty()) {
-      conjunctFilters.addFilter(HBaseFilterUtils.getIdFilter(query.getQueryRanges()));
+      conjunctFilters.addFilter(HBaseFilterUtils.getIdFilter(query.getQueryRanges(),
+        isSpreadingByteUsed));
     }
 
     if (query.getFilterPredicate() != null) {

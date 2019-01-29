@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,13 +38,8 @@ public class GraphHead extends Element implements EPGMGraphHead {
    * @param properties graph properties
    */
   public GraphHead(final GradoopId id, final String label,
-                   final Properties properties) {
+    final Properties properties) {
     super(id, label, properties);
-  }
-
-  public GraphHead(final GradoopId id, final String label,
-    final Properties properties, final Long from, final Long to) {
-    super(id, label, properties, from, to);
   }
 
   @Override

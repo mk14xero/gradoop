@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,11 @@
 package org.gradoop.storage.impl.hbase.io.inputformats;
 
 import org.apache.flink.addons.hbase.TableInputFormat;
-import org.apache.flink.api.common.io.InputFormat;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.hadoop.hbase.client.Scan;
 import org.apache.hadoop.hbase.filter.FilterList;
 import org.gradoop.common.model.api.entities.EPGMElement;
 import org.gradoop.storage.common.predicate.query.ElementQuery;
-import org.gradoop.storage.impl.hbase.io.HBaseDataSource;
 import org.gradoop.storage.impl.hbase.predicate.filter.HBaseFilterUtils;
 import org.gradoop.storage.impl.hbase.predicate.filter.api.HBaseElementFilter;
 
@@ -35,29 +33,23 @@ import javax.annotation.Nonnull;
  */
 abstract class BaseTableInputFormat<E extends EPGMElement> extends TableInputFormat<Tuple1<E>> {
 
-  public Long begin = null;
-
-  public Long end = null;
-
-  public HBaseDataSource.Querytype type = HBaseDataSource.Querytype.ALL;
-
-  public void setTemps(Long begin, Long end, HBaseDataSource.Querytype type) {
-    this.begin = begin;
-    this.end = end;
-    this.type = type;
-  }
-
   /**
    * Attach a HBase filter represented by the given query to the given scan instance.
    *
    * @param query the query that represents a filter
    * @param scan the HBase scan instance on which the filter will be applied
+   * @param isSpreadingByteUsed indicates whether a spreading byte is used as row key prefix or not
    */
-  void attachFilter(@Nonnull ElementQuery<HBaseElementFilter<E>> query, @Nonnull Scan scan) {
+  void attachFilter(
+    @Nonnull ElementQuery<HBaseElementFilter<E>> query,
+    @Nonnull Scan scan,
+    boolean isSpreadingByteUsed) {
+
     FilterList conjunctFilters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
 
     if (query.getQueryRanges() != null && !query.getQueryRanges().isEmpty()) {
-      conjunctFilters.addFilter(HBaseFilterUtils.getIdFilter(query.getQueryRanges()));
+      conjunctFilters.addFilter(HBaseFilterUtils.getIdFilter(query.getQueryRanges(),
+        isSpreadingByteUsed));
     }
 
     if (query.getFilterPredicate() != null) {
@@ -69,5 +61,4 @@ abstract class BaseTableInputFormat<E extends EPGMElement> extends TableInputFor
       scan.setFilter(conjunctFilters);
     }
   }
-
 }

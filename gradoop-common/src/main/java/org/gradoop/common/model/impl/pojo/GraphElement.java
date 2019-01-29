@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,17 +46,9 @@ public abstract class GraphElement
    * @param properties element properties
    * @param graphIds     graphIds that element is contained in
    */
-
   protected GraphElement(GradoopId id, String label,
-                         Properties properties, GradoopIdSet graphIds) {
+    Properties properties, GradoopIdSet graphIds) {
     super(id, label, properties);
-    this.graphIds = graphIds;
-  }
-
-
-  protected GraphElement(GradoopId id, String label,
-    Properties properties, GradoopIdSet graphIds, Long from, Long to) {
-    super(id, label, properties, from, to);
     this.graphIds = graphIds;
   }
 
@@ -112,4 +104,4 @@ public abstract class GraphElement
   public String toString() {
     return String.format("%s @ %s", super.toString(), graphIds);
   }
-  }
+}

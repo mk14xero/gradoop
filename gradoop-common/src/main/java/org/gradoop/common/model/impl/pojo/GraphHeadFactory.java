@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,18 +69,9 @@ public class GraphHeadFactory implements EPGMGraphHeadFactory<GraphHead>,
   /**
    * {@inheritDoc}
    */
-
-
   @Override
   public GraphHead createGraphHead(String label, Properties properties) {
     return initGraphHead(GradoopId.get(), label, properties);
-  }
-
-  @Override
-  public GraphHead initGraphHead(GradoopId id, String label, Properties properties) {
-    Preconditions.checkNotNull(id, "Identifier was null");
-    Preconditions.checkNotNull(label, "Label was null");
-    return new GraphHead(id, label, properties);
   }
 
   /**
@@ -88,18 +79,13 @@ public class GraphHeadFactory implements EPGMGraphHeadFactory<GraphHead>,
    */
   @Override
   public GraphHead initGraphHead(final GradoopId id, final String label,
-    Properties properties, Long from, Long to) {
+    Properties properties) {
     Preconditions.checkNotNull(id, "Identifier was null");
     Preconditions.checkNotNull(label, "Label was null");
-    return new GraphHead(id, label, properties, from, to);
+    return new GraphHead(id, label, properties);
   }
 
   @Override
-    public GraphHead createGraphHead(String label, Properties properties, Long from, Long to) {
-        return initGraphHead(GradoopId.get(), label, properties, from, to);
-    }
-
-    @Override
   public Class<GraphHead> getType() {
     return GraphHead.class;
   }

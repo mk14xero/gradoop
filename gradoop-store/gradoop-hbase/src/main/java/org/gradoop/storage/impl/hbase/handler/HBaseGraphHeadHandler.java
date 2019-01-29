@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,7 +78,6 @@ public class HBaseGraphHeadHandler extends HBaseElementHandler implements GraphH
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_META));
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_PROPERTY_TYPE));
     tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_PROPERTY_VALUE));
-    tableDescriptor.addFamily(new HColumnDescriptor(HBaseConstants.CF_TS));
     admin.createTable(tableDescriptor);
   }
 
@@ -89,8 +88,6 @@ public class HBaseGraphHeadHandler extends HBaseElementHandler implements GraphH
   public Put writeGraphHead(final Put put, final EPGMGraphHead graphData) {
     writeLabel(put, graphData);
     writeProperties(put, graphData);
-    writeFrom(put, graphData);
-    writeTo(put, graphData);
     return put;
   }
 
@@ -99,8 +96,7 @@ public class HBaseGraphHeadHandler extends HBaseElementHandler implements GraphH
    */
   @Override
   public GraphHead readGraphHead(final Result res) {
-    return graphHeadFactory.initGraphHead(readId(res), readLabel(res), readProperties(res),
-        readFrom(res), readTo(res));
+    return graphHeadFactory.initGraphHead(readId(res), readLabel(res), readProperties(res));
   }
 
   /**

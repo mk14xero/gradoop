@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ public class HBaseLabelInTest {
       SingleColumnValueFilter valueFilter = new SingleColumnValueFilter(
         Bytes.toBytesBinary(CF_META),
         Bytes.toBytesBinary(COL_LABEL),
-        CompareFilter.CompareOp.GREATER_OR_EQUAL,
+        CompareFilter.CompareOp.EQUAL,
         Bytes.toBytesBinary(label)
       );
       expectedFilterList.addFilter(valueFilter);

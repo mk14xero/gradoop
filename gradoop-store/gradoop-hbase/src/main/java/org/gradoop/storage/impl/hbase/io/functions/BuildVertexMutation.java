@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,17 +65,10 @@ public class BuildVertexMutation extends RichMapFunction<Vertex, Tuple2<GradoopI
   /**
    * {@inheritDoc}
    */
-
+  @Override
   public Tuple2<GradoopId, Mutation> map(Vertex vertex) throws Exception {
     GradoopId key = vertex.getId();
-
-    Put put;
-    if (vertex.getFrom() == null){
-      put = new Put(vertexHandler.getRowKey(vertex.getId()));
-    }
-    else {
-      put = new Put(vertexHandler.getRowKey(vertex.getId(), vertex.getFrom()));
-    }
+    Put put = new Put(vertexHandler.getRowKey(vertex.getId()));
     put = vertexHandler.writeVertex(put, vertex);
 
     reuseTuple.f0 = key;

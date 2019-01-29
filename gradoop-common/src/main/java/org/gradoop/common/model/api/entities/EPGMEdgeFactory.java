@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,10 +145,4 @@ public interface EPGMEdgeFactory<E extends EPGMEdge>
    */
   E initEdge(GradoopId id, String label, GradoopId sourceVertexId,
     GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds);
-
-  E createEdge(String label, GradoopId sourceVertexId, GradoopId targetVertexId,
-               Properties properties, GradoopIdSet graphIds, Long from, Long to);
-
-  E initEdge(GradoopId id, String label, GradoopId sourceVertexId,
-             GradoopId targetVertexId, Properties properties, GradoopIdSet graphIds, Long from, Long to);
 }

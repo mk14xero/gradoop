@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,9 +80,7 @@ public class VertexFactory implements EPGMVertexFactory<Vertex>, Serializable {
   @Override
   public Vertex initVertex(final GradoopId vertexID, final String label,
     Properties properties) {
-    Preconditions.checkNotNull(vertexID, "Identifier was null");
-    Preconditions.checkNotNull(label, "Label was null");
-    return new Vertex(vertexID, label, properties, null);
+    return initVertex(vertexID, label, properties, null);
   }
 
   /**
@@ -99,31 +97,16 @@ public class VertexFactory implements EPGMVertexFactory<Vertex>, Serializable {
   @Override
   public Vertex initVertex(final GradoopId vertexID, final String label,
     final GradoopIdSet graphs) {
-    Preconditions.checkNotNull(vertexID, "Identifier was null");
-    Preconditions.checkNotNull(label, "Label was null");
-    return new Vertex(vertexID, label, null, graphs);
+    return initVertex(vertexID, label, null, graphs);
   }
-
-  @Override
-  public Vertex createVertex(String label, Properties properties, GradoopIdSet graphIds ) {
-        return initVertex(GradoopId.get(), label, properties, graphIds);
-  }
- @Override
-  public Vertex initVertex(final GradoopId vertexID, final String label, final Properties properties,
-                             final GradoopIdSet graphs) {
-     Preconditions.checkNotNull(vertexID, "Identifier was null");
-     Preconditions.checkNotNull(label, "Label was null");
-     return new Vertex(vertexID, label, properties, graphs);
-  }
-
 
   /**
    * {@inheritDoc}
    */
   @Override
   public Vertex createVertex(String label, Properties properties,
-    GradoopIdSet graphIds, Long from, Long to) {
-    return initVertex(GradoopId.get(), label, properties, graphIds, from, to);
+    GradoopIdSet graphIds) {
+    return initVertex(GradoopId.get(), label, properties, graphIds);
   }
 
   /**
@@ -131,12 +114,11 @@ public class VertexFactory implements EPGMVertexFactory<Vertex>, Serializable {
    */
   @Override
   public Vertex initVertex(final GradoopId id, final String label,
-    final Properties properties, final GradoopIdSet graphs, final Long from, final Long to) {
+    final Properties properties, final GradoopIdSet graphs) {
     Preconditions.checkNotNull(id, "Identifier was null");
     Preconditions.checkNotNull(label, "Label was null");
-    return new Vertex(id, label, properties, graphs, from, to);
+    return new Vertex(id, label, properties, graphs);
   }
-
 
   @Override
   public Class<Vertex> getType() {

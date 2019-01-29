@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -57,16 +57,10 @@ public class BuildEdgeMutation extends RichMapFunction<Edge, Tuple2<GradoopId, M
   /**
    * {@inheritDoc}
    */
-
+  @Override
   public Tuple2<GradoopId, Mutation> map(Edge edge) throws Exception {
     GradoopId key = edge.getId();
-    Put put;
-    if (edge.getFrom() == null){
-      put = new Put(edgeHandler.getRowKey(edge.getId()));
-    }
-    else{
-      put = new Put(edgeHandler.getRowKey(edge.getId(), edge.getFrom()));
-    }
+    Put put = new Put(edgeHandler.getRowKey(edge.getId()));
     put = edgeHandler.writeEdge(put, edge);
 
     reuseTuple.f0 = key;

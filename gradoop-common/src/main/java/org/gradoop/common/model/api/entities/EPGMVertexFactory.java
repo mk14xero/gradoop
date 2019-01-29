@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,33 +117,5 @@ public interface EPGMVertexFactory<V extends EPGMVertex>
    * @return vertex data
    */
   V initVertex(GradoopId id, String label, Properties properties,
-               GradoopIdSet graphIds);
-
-    /**
-     * Initializes a vertex based on the given parameters.
-     *
-     * @param label      vertex labels
-     * @param properties vertex properties
-     * @param graphIds   graphIds, that contain the vertex
-     * @param from       vertex timestamp from
-     * @param to         vertex timestamp to
-     * @return vertex data
-     */
-
-    V createVertex(String label, Properties properties, GradoopIdSet graphIds, Long from, Long to);
-
-    /**
-     * Initializes a vertex based on the given parameters.
-     *
-     * @param id         vertex identifier
-     * @param label      vertex labels
-     * @param properties vertex properties
-     * @param graphIds   graphIds, that contain the vertex
-     * @param from       vertex timestamp from
-     * @param to         vertex timestamp to
-     * @return vertex data
-     */
-
-  V initVertex(GradoopId id, String label, Properties properties, GradoopIdSet graphIds, Long from, Long to);
-
+    GradoopIdSet graphIds);
 }

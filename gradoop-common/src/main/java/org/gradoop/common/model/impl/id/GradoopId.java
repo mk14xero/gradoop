@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -271,11 +271,8 @@ public class GradoopId implements NormalizableKey<GradoopId>, CopyableValue<Grad
     for (int i = 0; i < b.length; i++) {
       b[i] = (byte) Integer.parseInt(string.substring(i * 2, i * 2 + 2), 16);
     }
-
     return new GradoopId(b);
-
   }
-
 
   /**
    * Checks if a string can be transformed into a GradoopId.

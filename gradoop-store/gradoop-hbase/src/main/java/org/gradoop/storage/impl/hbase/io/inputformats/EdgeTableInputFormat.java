@@ -1,5 +1,5 @@
 /*
- * Copyright © 2014 - 2018 Leipzig University (Database Research Group)
+ * Copyright © 2014 - 2019 Leipzig University (Database Research Group)
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,9 @@ package org.gradoop.storage.impl.hbase.io.inputformats;
 import org.apache.flink.api.java.tuple.Tuple1;
 import org.apache.hadoop.hbase.client.Result;
 import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.filter.CompareFilter;
-import org.apache.hadoop.hbase.filter.FilterList;
-import org.apache.hadoop.hbase.filter.SingleColumnValueFilter;
-import org.apache.hadoop.hbase.util.Bytes;
 import org.gradoop.common.model.impl.pojo.Edge;
 import org.gradoop.storage.common.api.EPGMGraphOutput;
 import org.gradoop.storage.impl.hbase.api.EdgeHandler;
-
-import static org.gradoop.storage.impl.hbase.constants.HBaseConstants.CF_TS;
-import static org.gradoop.storage.impl.hbase.constants.HBaseConstants.COL_TS_TO;
 
 /**
  * Reads edge data from HBase.
@@ -67,82 +60,7 @@ public class EdgeTableInputFormat extends BaseTableInputFormat<Edge> {
     scan.setCaching(EPGMGraphOutput.DEFAULT_CACHE_SIZE);
 
     if (edgeHandler.getQuery() != null) {
-      attachFilter(edgeHandler.getQuery(), scan);
-    }
-
-    switch (type){
-      case AS_OF:
-        if (begin != null) {
-          scan.withStartRow(Bytes.toBytes(1L))
-              .withStopRow(Bytes.toBytes(begin), true)
-              .setFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-                  Bytes.toBytesBinary(COL_TS_TO),
-                  CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(begin)));
-        }
-        break;
-
-      case BETWEEN_IN:
-        if(begin != null && end != null) {
-          scan.withStartRow(Bytes.toBytes(1L))
-              .withStopRow(Bytes.toBytes(end), true);
-          scan.setFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-              Bytes.toBytesBinary(COL_TS_TO),
-              CompareFilter.CompareOp.GREATER, Bytes.toBytes(begin)));
-        }
-        break;
-
-      case CONTAINED_IN:
-        if (begin != null && end != null) {
-          scan.withStartRow(Bytes.toBytes(begin), true)
-              .setFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-                  Bytes.toBytesBinary(COL_TS_TO),
-                  CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(end)));
-        }
-        break;
-
-      case FROM_TO:
-        if (begin != null && end != null) {
-          scan.withStartRow(Bytes.toBytes(1L))
-              .withStopRow(Bytes.toBytes(end))
-              .setFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-                  Bytes.toBytesBinary(COL_TS_TO),
-                  CompareFilter.CompareOp.GREATER, Bytes.toBytes(begin)));
-        }
-        break;
-
-      case VALID_DURING:
-        if (begin != null && end != null) {
-          scan.withStartRow(Bytes.toBytes(1L))
-              .withStopRow(Bytes.toBytes(begin), true)
-              .setFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-                  Bytes.toBytesBinary(COL_TS_TO),
-                  CompareFilter.CompareOp.GREATER_OR_EQUAL,
-                  Bytes.toBytes(end)));
-        }
-        break;
-
-      case CREATED_IN:
-        if (begin != null && end != null) {
-          scan.withStartRow(Bytes.toBytes(begin), true)
-              .withStopRow(Bytes.toBytes(end), true);
-        }
-        break;
-
-      case DELETED_IN:
-        if (begin != null && end != null) {
-          FilterList allFilters = new FilterList(FilterList.Operator.MUST_PASS_ALL);
-          allFilters.addFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-              Bytes.toBytesBinary(COL_TS_TO),
-              CompareFilter.CompareOp.GREATER_OR_EQUAL, Bytes.toBytes(begin)));
-          allFilters.addFilter(new SingleColumnValueFilter(Bytes.toBytesBinary(CF_TS),
-              Bytes.toBytesBinary(COL_TS_TO),
-              CompareFilter.CompareOp.LESS_OR_EQUAL, Bytes.toBytes(end)));
-          scan.setFilter(allFilters);
-        }
-        break;
-
-      case ALL:
-        break;
+      attachFilter(edgeHandler.getQuery(), scan, edgeHandler.isSpreadingByteUsed());
     }
 
     return scan;
